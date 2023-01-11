@@ -1,2 +1,2 @@
 [workspace]
-members = ["cl-core"]
+members = ["cl-core", "colog"]
