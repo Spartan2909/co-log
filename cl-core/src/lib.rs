@@ -20,4 +20,11 @@ pub fn read_file(path: &str) -> io::Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn read_file_test() {
+        match read_file("../hello") {
+            Ok(_) | Err(_) => todo!(),
+        }
+    }
 }
