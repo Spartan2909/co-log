@@ -1,2 +1,5 @@
 [workspace]
 members = ["cl-core", "colog"]
+
+[workspace.package]
+authors = ["Caleb Robson <robson.caleb.299@gmail.com>"]
