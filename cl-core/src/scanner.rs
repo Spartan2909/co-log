@@ -91,7 +91,7 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
-    fn scan_test() {
+    fn scan_test_fact() {
         assert_eq!(HashSet::from_iter(scan(String::from("A hamster is a mammal."))),
             HashSet::from([
                 Token { kind: Article, lexeme: String::from("A"), start: 0, length: 1 },
@@ -101,6 +101,15 @@ mod tests {
                 Token { kind: Literal, lexeme: String::from("mammal"), start: 15, length: 6 },
                 Token { kind: FullStop, lexeme: String::from("."), start: 21, length: 1 },
                 Token { kind: EOF, lexeme: String::from(""), start: 22, length: 0 }
+            ])
+        )
+    }
+    
+    #[test]
+    fn scan_test_rule() {
+        assert_eq!(HashSet::from_iter(scan(String::from("X is the brother of Y if X is the sibling of Y and X is male."))),
+            HashSet::from([
+                Token::new(Variable, String::from("X"), 0, 1)
             ])
         )
     }
