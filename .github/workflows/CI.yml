@@ -10,4 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - run: rustc
+      - name: Checkout repositiory
+        uses: actions/checkout@v4
+        
+      - name: Test
+        run: cargo test
