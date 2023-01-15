@@ -2,7 +2,9 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
+
 mod scanner;
+mod parser;
 
 pub fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
