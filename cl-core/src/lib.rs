@@ -13,7 +13,7 @@ pub fn read_file(path: &str) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn cl_to_prolog(source: String) -> String {
+pub fn transpile(source: String) -> String {
     let tokens = scanner::scan(source);
     println!("{:?}", tokens);
     String::from("")

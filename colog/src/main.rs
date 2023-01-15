@@ -1,5 +1,5 @@
-use cl_core::cl_to_prolog;
+use cl_core::transpile;
 
 fn main() {
-    
+    transpile(String::from(""));
 }
