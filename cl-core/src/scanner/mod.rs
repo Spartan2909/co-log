@@ -19,10 +19,10 @@ pub enum TokenType {
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Token {
-    kind: TokenType,
-    lexeme: String,
-    start: usize,
-    length: usize,
+    pub kind: TokenType,
+    pub lexeme: String,
+    pub start: usize,
+    pub length: usize,
 }
 
 impl Token {
@@ -47,7 +47,7 @@ fn get_word(source: &str, start: usize) -> String {
 pub fn scan(source: String) -> Vec<Token> {
     let mut tokens = Vec::new();
 
-    let mut i: usize = 0;
+    let mut i = 0;
     while i < source.len() {
         let c = source.chars().nth(i).unwrap();
         match c {
