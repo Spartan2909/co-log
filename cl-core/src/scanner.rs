@@ -6,7 +6,7 @@ pub enum TokenType {
     FullStop, QuestionMark, LeftParen, RightParen,
 
     // Reserved words
-    Article, Operator, Prepostion, Verb,
+    Article, Operator, Prepostion, Verb, If,
     
     // Identifiers
     Literal, Variable,
@@ -62,6 +62,7 @@ pub fn scan(source: String) -> Vec<Token> {
                     "and" | "or" => kind = Operator,
                     "of" | "to" => kind = Prepostion,
                     "is" | "are" => kind = Verb,
+                    "if" => kind = If,
                     _ => {
                         if lexeme.chars().nth(length-1).unwrap().is_lowercase() {
                             kind = Literal;
@@ -91,7 +92,7 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
-    fn scan_test_fact() {
+    fn fact_unary() {
         assert_eq!(HashSet::from_iter(scan(String::from("A hamster is a mammal."))),
             HashSet::from([
                 Token { kind: Article, lexeme: String::from("A"), start: 0, length: 1 },
@@ -104,12 +105,69 @@ mod tests {
             ])
         )
     }
+
+    #[test]
+    fn fact_binary() {
+        assert_eq!(HashSet::from_iter(scan(String::from("John is the brother of Jack."))),
+            HashSet::from([
+                Token { kind: Literal, lexeme: String::from("John"), start: 0, length: 4 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 5, length: 2 },
+                Token { kind: Article, lexeme: String::from("the"), start: 8, length: 3 },
+                Token { kind: Literal, lexeme: String::from("brother"), start: 12, length: 7 },
+                Token { kind: Prepostion, lexeme: String::from("of"), start: 20, length: 2 },
+                Token { kind: Literal, lexeme: String::from("Jack"), start: 23, length: 4 },
+                Token { kind: FullStop, lexeme: String::from("."), start: 27, length: 1 },
+                Token { kind: EOF, lexeme: String::from(""), start: 28, length: 0 }
+            ])
+        )
+    }
+
+    #[test]
+    fn rule_unary() {
+        assert_eq!(HashSet::from_iter(scan(String::from("X is a mammal if X is an animal and X is warm-blooded."))),
+            HashSet::from([
+                Token { kind: Variable, lexeme: String::from("X"), start: 0, length: 1 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 2, length: 2 },
+                Token { kind: Article, lexeme: String::from("a"), start: 5, length: 1 },
+                Token { kind: Literal, lexeme: String::from("mammal"), start: 7, length: 6 },
+                Token { kind: If, lexeme: String::from("if"), start: 14, length: 2 },
+                Token { kind: Variable, lexeme: String::from("X"), start: 17, length: 1 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 19, length: 2 },
+                Token { kind: Article, lexeme: String::from("an"), start: 22, length: 2 },
+                Token { kind: Literal, lexeme: String::from("animal"), start: 25, length: 6 },
+                Token { kind: Operator, lexeme: String::from("and"), start: 32, length: 3 },
+                Token { kind: Variable, lexeme: String::from("X"), start: 36, length: 1 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 38, length: 2 },
+                Token { kind: Literal, lexeme: String::from("warm-blooded"), start: 41, length: 12 },
+                Token { kind: FullStop, lexeme: String::from("."), start: 53, length: 1 },
+                Token { kind: EOF, lexeme: String::from(""), start: 54, length: 0 }
+            ])
+        )
+    }
     
     #[test]
-    fn scan_test_rule() {
+    fn rule_binary() {
         assert_eq!(HashSet::from_iter(scan(String::from("X is the brother of Y if X is the sibling of Y and X is male."))),
             HashSet::from([
-                Token::new(Variable, String::from("X"), 0, 1)
+                Token { kind: Variable, lexeme: String::from("X"), start: 0, length: 1 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 2, length: 2 },
+                Token { kind: Article, lexeme: String::from("the"), start: 5, length: 3 },
+                Token { kind: Literal, lexeme: String::from("brother"), start: 9, length: 7 },
+                Token { kind: Prepostion, lexeme: String::from("of"), start: 17, length: 2 },
+                Token { kind: Variable, lexeme: String::from("Y"), start: 20, length: 1 },
+                Token { kind: If, lexeme: String::from("if"), start: 22, length: 2 },
+                Token { kind: Variable, lexeme: String::from("X"), start: 25, length: 1 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 27, length: 2 },
+                Token { kind: Article, lexeme: String::from("the"), start: 30, length: 3 },
+                Token { kind: Literal, lexeme: String::from("sibling"), start: 34, length: 7 },
+                Token { kind: Prepostion, lexeme: String::from("of"), start: 42, length: 2 },
+                Token { kind: Variable, lexeme: String::from("Y"), start: 45, length: 1 },
+                Token { kind: Operator, lexeme: String::from("and"), start: 47, length: 3 },
+                Token { kind: Variable, lexeme: String::from("X"), start: 51, length: 1 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 53, length: 2 },
+                Token { kind: Literal, lexeme: String::from("male"), start: 56, length: 4 },
+                Token { kind: FullStop, lexeme: String::from("."), start: 60, length: 1 },
+                Token { kind: EOF, lexeme: String::from(""), start: 61, length: 0 }
             ])
         )
     }
