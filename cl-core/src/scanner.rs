@@ -6,7 +6,7 @@ pub enum TokenType {
     FullStop, QuestionMark, LeftParen, RightParen,
 
     // Reserved words
-    Article, Operator, Prepostion, Verb, If,
+    Article, Operator, Prepostion, Verb, If, Pronoun,
     
     // Identifiers
     Literal, Variable,
@@ -23,8 +23,8 @@ pub struct Token {
 }
 
 impl Token {
-    fn new(kind: TokenType, lexeme: String, start: usize, length: usize) -> Self {
-        Token { kind, lexeme, start, length }
+    fn new(kind: TokenType, lexeme: &str, start: usize, length: usize) -> Self {
+        Token { kind, lexeme: String::from(lexeme), start, length }
     }
 }
 
@@ -49,29 +49,29 @@ pub fn scan(source: String) -> Vec<Token> {
         let c = source.chars().nth(i).unwrap();
         match c {
             c if c.is_whitespace() => {i += 1; continue},
-            '(' => tokens.push(Token::new(LeftParen, String::from("("), i, 1)),
-            ')' => tokens.push(Token::new(RightParen, String::from(")"), i, 1)),
-            '.' => tokens.push(Token::new(FullStop, String::from("."), i, 1)),
-            '?' => tokens.push(Token::new(QuestionMark, String::from("?"), i, 1)),
+            '(' => tokens.push(Token::new(LeftParen, "(", i, 1)),
+            ')' => tokens.push(Token::new(RightParen, ")", i, 1)),
+            '.' => tokens.push(Token::new(FullStop, ".", i, 1)),
+            '?' => tokens.push(Token::new(QuestionMark, "?", i, 1)),
             c if c.is_alphabetic() => {
                 let lexeme = get_word(&source, i);
                 let length = lexeme.len();
-                let kind: TokenType;
-                match lexeme.to_lowercase().as_str() {
-                    "a" | "an" | "the" => kind = Article,
-                    "and" | "or" => kind = Operator,
-                    "of" | "to" => kind = Prepostion,
-                    "is" | "are" => kind = Verb,
-                    "if" => kind = If,
+                let kind = match lexeme.to_lowercase().as_str() {
+                    "a" | "an" | "the" => Article,
+                    "and" | "or" => Operator,
+                    "of" | "to" => Prepostion,
+                    "is" | "are" => Verb,
+                    "if" => If,
+                    "who" | "what" => Pronoun,
                     _ => {
                         if lexeme.chars().nth(length-1).unwrap().is_lowercase() {
-                            kind = Literal;
+                            Literal
                         } else {
-                            kind = Variable;
+                            Variable
                         }
                     }
-                }
-                tokens.push(Token::new(kind, lexeme, i, length));
+                };
+                tokens.push(Token::new(kind, &lexeme, i, length));
 
                 i += length;
                 continue
@@ -82,7 +82,7 @@ pub fn scan(source: String) -> Vec<Token> {
         i += 1;
     }
 
-    tokens.push(Token::new(TokenType::EOF, String::from(""), i, 0));
+    tokens.push(Token::new(TokenType::EOF, "", i, 0));
     tokens
 }
 
@@ -168,6 +168,85 @@ mod tests {
                 Token { kind: Literal, lexeme: String::from("male"), start: 56, length: 4 },
                 Token { kind: FullStop, lexeme: String::from("."), start: 60, length: 1 },
                 Token { kind: EOF, lexeme: String::from(""), start: 61, length: 0 }
+            ])
+        )
+    }
+
+    #[test]
+    fn query_literal() {
+        assert_eq!(HashSet::from_iter(scan(String::from("Is a hamster a mammal?"))),
+            HashSet::from([
+                Token { kind: Verb, lexeme: String::from("Is"), start: 0, length: 2 },
+                Token { kind: Article, lexeme: String::from("a"), start: 3, length: 1 },
+                Token { kind: Literal, lexeme: String::from("hamster"), start: 5, length: 7 },
+                Token { kind: Article, lexeme: String::from("a"), start: 13, length: 1 },
+                Token { kind: Literal, lexeme: String::from("mammal"), start: 15, length: 6 },
+                Token { kind: QuestionMark, lexeme: String::from("?"), start: 21, length: 1 },
+                Token { kind: EOF, lexeme: String::from(""), start: 22, length: 0 }
+            ])
+        )
+    }
+    
+    #[test]
+    fn query_literal_literal() {
+        assert_eq!(HashSet::from_iter(scan(String::from("Is John the brother of Jack?"))),
+            HashSet::from([
+                Token { kind: Verb, lexeme: String::from("Is"), start: 0, length: 2 },
+                Token { kind: Literal, lexeme: String::from("John"), start: 3, length: 4 },
+                Token { kind: Article, lexeme: String::from("the"), start: 8, length: 3 },
+                Token { kind: Literal, lexeme: String::from("brother"), start: 12, length: 7 },
+                Token { kind: Prepostion, lexeme: String::from("of"), start: 20, length: 2 },
+                Token { kind: Literal, lexeme: String::from("Jack"), start: 23, length: 4 },
+                Token { kind: QuestionMark, lexeme: String::from("?"), start: 27, length: 1 },
+                Token { kind: EOF, lexeme: String::from(""), start: 28, length: 0 }
+            ])
+        )
+    }
+
+    #[test]
+    fn query_literal_pronoun() {
+        assert_eq!(HashSet::from_iter(scan(String::from("John is the brother of who?"))),
+            HashSet::from([
+                Token { kind: Literal, lexeme: String::from("John"), start: 0, length: 4 },
+                Token { kind: Verb, lexeme: String::from("is"), start: 5, length: 2 },
+                Token { kind: Article, lexeme: String::from("the"), start: 8, length: 3 },
+                Token { kind: Literal, lexeme: String::from("brother"), start: 12, length: 7 },
+                Token { kind: Prepostion, lexeme: String::from("of"), start: 20, length: 2 },
+                Token { kind: Pronoun, lexeme: String::from("who"), start: 23, length: 3 },
+                Token { kind: QuestionMark, lexeme: String::from("?"), start: 26, length: 1 },
+                Token { kind: EOF, lexeme: String::from(""), start: 27, length: 0 }
+            ])
+        )
+    }
+
+    #[test]
+    fn query_pronoun_literal() {
+        assert_eq!(HashSet::from_iter(scan(String::from("Who is the brother of Jane?"))),
+            HashSet::from([
+                Token::new(Pronoun, "Who", 0, 3),
+                Token::new(Verb, "is", 4, 2),
+                Token::new(Article, "the", 7, 3),
+                Token::new(Literal, "brother", 11, 7),
+                Token::new(Prepostion, "of", 19, 2),
+                Token::new(Literal, "Jane", 22, 4),
+                Token::new(QuestionMark, "?", 26, 1),
+                Token::new(EOF, "", 27, 0)
+            ])
+        )
+    }
+
+    #[test]
+    fn query_pronoun_pronoun() {
+        assert_eq!(HashSet::from_iter(scan(String::from("Who is the sister of who?"))),
+            HashSet::from([
+                Token::new(Pronoun, "Who", 0, 3),
+                Token::new(Verb, "is", 4, 2),
+                Token::new(Article, "the", 7, 3),
+                Token::new(Literal, "sister", 11, 6),
+                Token::new(Prepostion, "of", 18, 2),
+                Token::new(Pronoun, "who", 21, 3),
+                Token::new(QuestionMark, "?", 24, 1),
+                Token::new(EOF, "", 25, 0)
             ])
         )
     }
