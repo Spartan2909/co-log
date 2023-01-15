@@ -1,0 +1,91 @@
+use self::TokenType::*;
+
+#[cfg(test)]
+mod tests;
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum TokenType {
+    // Single character tokens
+    FullStop, QuestionMark, LeftParen, RightParen,
+
+    // Reserved words
+    Article, Operator, Prepostion, Verb, If, Pronoun, Not,
+    
+    // Identifiers
+    Literal, Variable,
+
+    EOF
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Token {
+    kind: TokenType,
+    lexeme: String,
+    start: usize,
+    length: usize,
+}
+
+impl Token {
+    fn new(kind: TokenType, lexeme: &str, start: usize, length: usize) -> Self {
+        Token { kind, lexeme: String::from(lexeme), start, length }
+    }
+}
+
+fn valid_iden(c: char) -> bool {
+    c.is_alphabetic() || c == '-' || c == '_'
+}
+
+fn get_word(source: &str, start: usize) -> String {
+    let mut end = start;
+    while end < source.len() && valid_iden(source.chars().nth(end).unwrap()) {
+        end += 1;
+    }
+
+    String::from(&source[start..end])
+}
+
+pub fn scan(source: String) -> Vec<Token> {
+    let mut tokens = Vec::new();
+
+    let mut i: usize = 0;
+    while i < source.len() {
+        let c = source.chars().nth(i).unwrap();
+        match c {
+            c if c.is_whitespace() => {i += 1; continue},
+            '(' => tokens.push(Token::new(LeftParen, "(", i, 1)),
+            ')' => tokens.push(Token::new(RightParen, ")", i, 1)),
+            '.' => tokens.push(Token::new(FullStop, ".", i, 1)),
+            '?' => tokens.push(Token::new(QuestionMark, "?", i, 1)),
+            c if c.is_alphabetic() => {
+                let lexeme = get_word(&source, i);
+                let length = lexeme.len();
+                let kind = match lexeme.to_lowercase().as_str() {
+                    "a" | "an" | "the" => Article,
+                    "and" | "or" => Operator,
+                    "of" | "to" => Prepostion,
+                    "is" | "are" => Verb,
+                    "if" => If,
+                    "who" | "what" => Pronoun,
+                    "not" => Not,
+                    _ => {
+                        if lexeme.chars().nth(length-1).unwrap().is_lowercase() {
+                            Literal
+                        } else {
+                            Variable
+                        }
+                    }
+                };
+                tokens.push(Token::new(kind, &lexeme, i, length));
+
+                i += length;
+                continue
+            },
+            _ => todo!("unrecognised character"),
+        }
+
+        i += 1;
+    }
+
+    tokens.push(Token::new(TokenType::EOF, "", i, 0));
+    tokens
+}
