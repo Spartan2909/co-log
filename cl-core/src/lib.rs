@@ -17,7 +17,7 @@ pub fn read_file(path: &str) -> io::Result<String> {
 
 pub fn transpile(source: String) -> String {
     let tokens = scanner::scan(source);
-    println!("{:?}", tokens);
+    //println!("{:?}", tokens);
     let trees = parser::parse(tokens);
     println!("{:?}", trees);
     String::from("")

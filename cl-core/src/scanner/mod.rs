@@ -29,6 +29,10 @@ impl Token {
     fn new(kind: TokenType, lexeme: &str, start: usize, length: usize) -> Self {
         Token { kind, lexeme: String::from(lexeme), start, length }
     }
+
+    pub fn is_terminator(&self) -> bool {
+        [FullStop, QuestionMark].contains(&self.kind)
+    }
 }
 
 fn valid_iden(c: char) -> bool {
