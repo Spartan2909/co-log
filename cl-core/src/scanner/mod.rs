@@ -3,7 +3,7 @@ use self::TokenType::*;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum TokenType {
     // Single character tokens
     FullStop, QuestionMark, LeftParen, RightParen,
@@ -17,7 +17,7 @@ pub enum TokenType {
     EOF
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Token {
     pub kind: TokenType,
     pub lexeme: String,
