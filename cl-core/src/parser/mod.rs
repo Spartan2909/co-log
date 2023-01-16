@@ -24,23 +24,10 @@ impl fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
-fn check(tokens: &Vec<scanner::Token>, i: usize, expected: TokenType) -> bool {
-    tokens[i + 1].kind == expected
-}
-
-fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Token, usize) {
-    while i < tokens.len() {
-        if tokens[i].is_terminator() {break}
-        i += 1
-    }
-
-    (tokens[i].clone(), i)
-}
-
-
-
 impl ast::Clause {
-
+    fn new(collapsed: (Vec<scanner::Token>, Vec<Option<scanner::Token>>), mut i: usize) -> Result<Self, ParseError> {
+        todo!()
+    }
 }
 
 impl ast::Stmt {
@@ -56,6 +43,24 @@ impl ast::Stmt {
         }
     
         found
+    }
+
+    fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Token, usize) {
+        while i < tokens.len() {
+            if tokens[i].is_terminator() {break}
+            i += 1
+        }
+    
+        (tokens[i].clone(), i)
+    }
+
+    fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usize {
+        while i < tokens.len() {
+            if tokens[i].kind == kind {break}
+            i += 1
+        }
+
+        i
     }
 
     fn collapse_articles(tokens: &Vec<scanner::Token>, mut i: usize) -> (Vec<scanner::Token>, Vec<Option<scanner::Token>>) {
@@ -83,9 +88,8 @@ impl ast::Stmt {
     }
 
     pub fn new(tokens: Vec<scanner::Token>, i: usize) -> Result<(Self, usize), ParseError> {
-        let next_term = next_terminator(&tokens, i);
+        let next_term = Self::next_terminator(&tokens, i);
         let binary = Self::contains(&tokens, i, TokenType::Prepostion);
-        dbg!(binary);
         let collapsed = Self::collapse_articles(&tokens, i);
         match next_term.0.kind {
             // Fact or rule
@@ -109,15 +113,12 @@ impl ast::Stmt {
                     stmt.right = Some(right)
                 }
 
-                println!("{:?}", stmt);
-
-                // Fact
-                if !Self::contains(&tokens, i, TokenType::If) {
-                    return Ok((stmt, next_term.1))
+                // Rule
+                if Self::contains(&tokens, i, TokenType::If) {
+                    stmt.condition = Some(ast::Clause::new(collapsed.clone(), Self::find_next(&tokens, i, TokenType::If) + 1)?);
                 }
 
-                // Rule
-                todo!()
+                Ok((stmt, next_term.1))
             },
             // Query
             TokenType::QuestionMark => {
