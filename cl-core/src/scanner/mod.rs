@@ -1,8 +1,5 @@
 use self::TokenType::*;
 
-#[cfg(test)]
-mod tests;
-
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum TokenType {
     // Single character tokens
@@ -93,3 +90,6 @@ pub fn scan(source: String) -> Vec<Token> {
     tokens.push(Token::new(TokenType::EOF, "", i, 0));
     tokens
 }
+
+#[cfg(test)]
+mod tests;
