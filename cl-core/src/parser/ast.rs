@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use super::scanner;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum IdenType { Literal, Variable }
 
 #[derive(Debug, Clone)]

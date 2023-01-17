@@ -30,6 +30,10 @@ impl Token {
     pub fn is_terminator(&self) -> bool {
         [FullStop, QuestionMark].contains(&self.kind)
     }
+
+    pub fn is_identifier(&self) -> bool {
+        [Literal, Variable].contains(&self.kind)
+    }
 }
 
 fn valid_iden(c: char) -> bool {
