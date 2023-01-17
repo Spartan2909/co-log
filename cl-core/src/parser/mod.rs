@@ -22,10 +22,70 @@ impl fmt::Display for ParseError {
     }
 }
 
+impl ParseError {
+    fn new(token: scanner::Token, expected: TokenType) -> Self {
+        Self { token, expected: Vec::from([expected]) }
+    }
+}
+
 impl Error for ParseError {}
 
+fn index_unwrapped_operator(tokens: &Vec<scanner::Token>, mut i: usize, next_term: usize, search_kind: TokenType) -> Option<usize> {
+    let mut open_paren = 0;
+
+    while i < tokens.len() && i < next_term {
+        match &tokens[i].kind {
+            kind if kind == &search_kind => {
+                if open_paren == 0 {
+                    return Some(i)
+                }
+            },
+            TokenType::LeftParen => open_paren += 1,
+            TokenType::RightParen => open_paren -= 1,
+            _ => {}
+        }
+
+        i += 1
+    }
+    
+    None
+}
+
+fn find_close(tokens: &Vec<scanner::Token>, i: usize, next_term: usize) -> Result<usize, usize> {
+    while i < next_term {
+        if tokens[i].kind == TokenType::RightParen {
+            return Ok(i)
+        }
+    }
+
+    Err(i)
+}
+
 impl ast::Clause {
-    fn new(collapsed: (Vec<scanner::Token>, Vec<Option<scanner::Token>>), mut i: usize) -> Result<Self, ParseError> {
+    fn new(collapsed: Vec<scanner::Token>, articles: Vec<Option<scanner::Token>>, i: usize, next_term: usize) -> Result<Self, ParseError> {
+        if let Some(op_index) = index_unwrapped_operator(&collapsed, i, next_term, TokenType::Operator) {
+            let operator = collapsed[op_index].clone();
+            let left_clause = Some(Box::new(Self::new(collapsed.clone(), articles.clone(), i, op_index)?));
+            let right_clause = Some(Box::new(Self::new(collapsed.clone(), articles.clone(), op_index + 1, next_term)?));
+
+            let op_type = Some(if operator.lexeme.to_lowercase() == "and" {
+                ast::OperatorType::And
+            } else {
+                ast::OperatorType::Or
+            });
+
+            return Ok(Self { kind: ast::ClauseType::Operator, negated: false, op_type, left_clause, right_clause, left_iden: None, right_iden: None })
+        }
+
+        if collapsed[i].kind == TokenType::LeftParen {
+            let close_paren = find_close(&collapsed, i, next_term);
+
+            match close_paren {
+                Ok(close) => return Self::new(collapsed, articles, i + 1, close),
+                Err(close) => return Err(ParseError::new(collapsed[close].clone(),  TokenType::RightParen))
+            }
+        }
+
         todo!()
     }
 }
@@ -115,7 +175,9 @@ impl ast::Stmt {
 
                 // Rule
                 if Self::contains(&tokens, i, TokenType::If) {
-                    stmt.condition = Some(ast::Clause::new(collapsed.clone(), Self::find_next(&tokens, i, TokenType::If) + 1)?);
+                    stmt.kind = ast::StmtType::Rule;
+                    let clause_start = Self::find_next(&tokens, i, TokenType::If) + 1;
+                    stmt.condition = Some(ast::Clause::new(collapsed.0, collapsed.1, clause_start, next_term.1)?);
                 }
 
                 Ok((stmt, next_term.1))
@@ -124,7 +186,7 @@ impl ast::Stmt {
             TokenType::QuestionMark => {
                 todo!()
             }
-            _ => {Err(ParseError { token: next_term.0, expected: Vec::new() } )}
+            _ => unimplemented!()
         }
     }
 }

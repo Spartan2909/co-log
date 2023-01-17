@@ -37,13 +37,13 @@ pub enum OperatorType { And, Or }
 
 #[derive(Debug)]
 pub struct Clause {
-    kind: ClauseType,
-    negated: bool,
-    op_type: Option<OperatorType>,
-    left_clause: Option<Box<Clause>>,
-    right_clause: Option<Box<Clause>>,
-    left_iden: Option<Identifier>,
-    right_iden: Option<Identifier>
+    pub kind: ClauseType,
+    pub negated: bool,
+    pub op_type: Option<OperatorType>,
+    pub left_clause: Option<Box<Clause>>,
+    pub right_clause: Option<Box<Clause>>,
+    pub left_iden: Option<Identifier>,
+    pub right_iden: Option<Identifier>
 }
 
 #[derive(Debug)]
