@@ -74,7 +74,8 @@ impl ast::Clause {
                 ast::OperatorType::Or
             });
 
-            return Ok(Self { kind: ast::ClauseType::Operator, negated: false, op_type, left_clause, right_clause, left_iden: None, right_iden: None })
+            return Ok(Self { kind: ast::ClauseType::Operator, negated: false, op_type, left_clause,
+                right_clause, left_iden: None, relationship: None, right_iden: None })
         }
 
         if collapsed[i].kind == TokenType::LeftParen {
@@ -82,7 +83,7 @@ impl ast::Clause {
 
             match close_paren {
                 Ok(close) => return Self::new(collapsed, articles, i + 1, close),
-                Err(close) => return Err(ParseError::new(collapsed[close].clone(),  TokenType::RightParen))
+                Err(terminator) => return Err(ParseError::new(collapsed[terminator].clone(),  TokenType::RightParen))
             }
         }
 
@@ -147,7 +148,7 @@ impl ast::Stmt {
         (result, articles)
     }
 
-    pub fn new(tokens: Vec<scanner::Token>, i: usize) -> Result<(Self, usize), ParseError> {
+    fn new(tokens: Vec<scanner::Token>, i: usize) -> Result<(Self, usize), ParseError> {
         let next_term = Self::next_terminator(&tokens, i);
         let binary = Self::contains(&tokens, i, TokenType::Prepostion);
         let collapsed = Self::collapse_articles(&tokens, i);
@@ -168,8 +169,8 @@ impl ast::Stmt {
 
                 if binary {
                     let preposition = collapsed.0[3].lexeme.clone();
-                    let mut right = ast::Identifier::try_from(collapsed.0[4].clone())?;
-                    right.preposition = Some(preposition);
+                    stmt.relationship.preposition = Some(preposition);
+                    let right = ast::Identifier::try_from(collapsed.0[4].clone())?;
                     stmt.right = Some(right)
                 }
 

@@ -43,6 +43,7 @@ pub struct Clause {
     pub left_clause: Option<Box<Clause>>,
     pub right_clause: Option<Box<Clause>>,
     pub left_iden: Option<Identifier>,
+    pub relationship: Option<Identifier>,
     pub right_iden: Option<Identifier>
 }
 
