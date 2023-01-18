@@ -74,7 +74,7 @@ fn collapse_articles(tokens: &Vec<scanner::Token>, mut i: usize) -> (Vec<scanner
             articles.push(Some(tokens[i].clone()));
             article_last_iter = true
         } else {
-            if [TokenType::Literal, TokenType::Variable].contains(&tokens[i].kind) && !article_last_iter {
+            if [TokenType::Literal, TokenType::Variable, TokenType::Pronoun].contains(&tokens[i].kind) && !article_last_iter {
                 articles.push(None)
             }
 
@@ -277,16 +277,31 @@ impl ast::Stmt {
 
                         return Ok((stmt, stmt_end))
                     },
-                    TokenType::Literal => {
-                        todo!()
-                    },
-                    TokenType::Pronoun => {
-                        todo!()
+                    TokenType::Literal | TokenType::Pronoun => {
+                        let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
+                        if let Some(tmp) = articles[0].clone() {
+                            left.article = Some(tmp.lexeme)
+                        }
+
+                        let mut relationship = ast::Identifier::try_from(collapsed[2].clone())?;
+                        if let Some(tmp) = articles[1].clone() {
+                            relationship.article = Some(tmp.lexeme)
+                        }
+                        relationship.preposition = Some(collapsed[3].lexeme.clone());
+
+                        let mut right = ast::Identifier::try_from(collapsed[4].clone())?;
+                        if let Some(tmp) = articles[2].clone() {
+                            right.article = Some(tmp.lexeme)
+                        }
+
+                        let stmt = Self {
+                            kind: ast::StmtType::Query, left, relationship, right: Some(right), condition: None
+                        };
+
+                        return Ok((stmt, stmt_end))
                     },
                     _ => unimplemented!()
                 }
-
-                todo!()
             }
             _ => unimplemented!()
         }

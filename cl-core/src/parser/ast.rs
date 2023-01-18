@@ -18,7 +18,7 @@ impl TryFrom<scanner::Token> for Identifier {
     fn try_from(value: scanner::Token) -> Result<Self, super::ParseError> {
         let kind = if value.kind == scanner::TokenType::Literal {
             IdenType::Literal
-        } else if value.kind == scanner::TokenType::Variable {
+        } else if value.kind == scanner::TokenType::Variable || value.kind == scanner::TokenType::Pronoun {
             IdenType::Variable
         } else {
             return Err(super::ParseError {
