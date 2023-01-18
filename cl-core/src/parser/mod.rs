@@ -253,14 +253,37 @@ impl ast::Stmt {
                 match collapsed[0].kind {
                     TokenType::Verb => {
                         let binary = collapsed.len() == 6;
+
+                        let mut left = ast::Identifier::try_from(collapsed[1].clone())?;
+                        if articles[0].is_some() {
+                            left.article = Some(articles[0].clone().unwrap().lexeme);
+                        }
+
+                        let mut relationship = ast::Identifier::try_from(collapsed[2].clone())?;
+                        if articles[1].is_some() {
+                            relationship.article = Some(articles[1].clone().unwrap().lexeme);
+                        }
+
+                        let mut stmt = Self {
+                            kind: ast::StmtType::Query, left, relationship, right: None, condition: None
+                        };
+
+                        if binary {
+                            let preposition = collapsed[3].lexeme.clone();
+                            stmt.relationship.preposition = Some(preposition);
+                            let right = ast::Identifier::try_from(collapsed[4].clone())?;
+                            stmt.right = Some(right)
+                        }
+
+                        return Ok((stmt, stmt_end))
                     },
                     TokenType::Literal => {
-
+                        todo!()
                     },
                     TokenType::Pronoun => {
-
+                        todo!()
                     },
-                    _ => {}
+                    _ => unimplemented!()
                 }
 
                 todo!()
@@ -278,13 +301,15 @@ pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> 
         use TokenType::*;
         match tokens[i].kind {
             EOF => break,
-            Article | Literal | Variable | Pronoun => {
+            Article | Literal | Variable | Pronoun | Verb => {
                 let (tree, end) = ast::Stmt::new(tokens.clone(), i)?;
                 dbg!(&tree);
                 trees.push(tree);
                 i = end + 1
             },
-            _ => return Err(ParseError { token: tokens[i].clone(), expected: Vec::from([Article, Literal, Variable, Pronoun]) })
+            _ => return Err(ParseError {
+                token: tokens[i].clone(), expected: Vec::from([Article, Literal, Variable, Pronoun, Verb])
+            })
         }
     }
 
