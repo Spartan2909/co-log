@@ -107,7 +107,6 @@ impl ast::Clause {
         dbg!(&tokens[i..next_term]);
         let (collapsed, articles) = collapse_articles(&tokens, i);
         if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
-            println!("detected compound");
             let operator = tokens[op_index].clone();
             let left_clause = Some(Box::new(Self::new(tokens.clone(), i, op_index)?));
             let right_clause = Some(Box::new(Self::new(tokens.clone(), op_index + 1, next_term)?));
@@ -123,7 +122,6 @@ impl ast::Clause {
         }
 
         if collapsed[0].kind == TokenType::LeftParen {
-            println!("detected parenthesis");
             let close_paren = find_close(&collapsed, 0, next_term);
 
             match close_paren {
@@ -133,7 +131,6 @@ impl ast::Clause {
         }
 
         if collapsed[0].is_identifier() {
-            println!("detected simple");
             let negated = collapsed[2].kind == TokenType::Not;
             let mut normalised: Vec<scanner::Token> = collapsed.clone();
             if negated {
@@ -252,6 +249,20 @@ impl ast::Stmt {
             },
             // Query
             TokenType::QuestionMark => {
+                let (collapsed, articles) = collapse_articles(&tokens, i);
+                match collapsed[0].kind {
+                    TokenType::Verb => {
+                        let binary = collapsed.len() == 6;
+                    },
+                    TokenType::Literal => {
+
+                    },
+                    TokenType::Pronoun => {
+
+                    },
+                    _ => {}
+                }
+
                 todo!()
             }
             _ => unimplemented!()
