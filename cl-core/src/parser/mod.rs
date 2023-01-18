@@ -139,7 +139,7 @@ impl ast::Clause {
             }
 
             let binary 
-                = type_between(&normalised, i, next_term, TokenType::Prepostion, TokenType::FullStop);
+                = type_between(&normalised, 0, next_term, TokenType::Prepostion, TokenType::FullStop);
 
             let mut left = ast::Identifier::try_from(normalised[0].clone())?;
             if articles[0].is_some() {
