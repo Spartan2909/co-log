@@ -221,18 +221,20 @@ impl ast::Stmt {
         let right_index = 4;
         let mut kind = ast::StmtType::Fact;
 
-        //Ok((stmt, stmt_end));
-        match collapsed[0].kind {
-            TokenType::Verb => {
-                binary = collapsed.len() == 6;
-                left_index = 1;
-                kind = ast::StmtType::Query;
-            },
-            TokenType::Literal | TokenType::Pronoun => {
-                binary = true;
-                kind = ast::StmtType::Query;
-            },
-            _ => {}
+        let (next_term, _) = Self::next_terminator(&collapsed, 0);
+        if next_term.kind == TokenType::QuestionMark {
+            match collapsed[0].kind {
+                TokenType::Verb => {
+                    binary = collapsed.len() == 6;
+                    left_index = 1;
+                    kind = ast::StmtType::Query;
+                },
+                TokenType::Literal | TokenType::Pronoun => {
+                    binary = true;
+                    kind = ast::StmtType::Query;
+                },
+                _ => {}
+            }
         }
 
         let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
