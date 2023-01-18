@@ -213,98 +213,58 @@ impl ast::Stmt {
 
     fn new(tokens: Vec<scanner::Token>, i: usize) -> Result<(Self, usize), ParseError> {
         let (_, stmt_end) = Self::next_terminator(&tokens, i);
-        let binary = type_between(&tokens, i, tokens.len(), TokenType::Prepostion, TokenType::If);
+
+        let mut binary = type_between(&tokens, i, tokens.len(), TokenType::Prepostion, TokenType::If);
         let (collapsed, articles) = collapse_articles(&tokens, i);
-        let next_term = Self::next_terminator(&collapsed, 0);
-        match next_term.0.kind {
-            // Fact or rule
-            TokenType::FullStop => {
-                let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
-                if articles[0].is_some() {
-                    left.article = Some(articles[0].clone().unwrap().lexeme);
-                }
+        let mut left_index = 0;
+        let rel_index = 2;
+        let right_index = 4;
+        let mut kind = ast::StmtType::Fact;
 
-                let mut relationship = ast::Identifier::try_from(collapsed[2].clone())?;
-                if articles[1].is_some() {
-                    relationship.article = Some(articles[1].clone().unwrap().lexeme);
-                }
-
-                let mut stmt = Self { kind: ast::StmtType::Fact, left, relationship, right: None, condition: None };
-
-                if binary {
-                    let preposition = collapsed[3].lexeme.clone();
-                    stmt.relationship.preposition = Some(preposition);
-                    let right = ast::Identifier::try_from(collapsed[4].clone())?;
-                    stmt.right = Some(right)
-                }
-
-                // Rule
-                if Self::contains(&tokens, i, TokenType::If) {
-                    stmt.kind = ast::StmtType::Rule;
-                    let clause_start = Self::find_next(&tokens, 0, TokenType::If) + 1;
-                    stmt.condition = Some(ast::Clause::new(tokens, clause_start, stmt_end)?);
-                }
-
-                Ok((stmt, stmt_end))
+        //Ok((stmt, stmt_end));
+        match collapsed[0].kind {
+            TokenType::Verb => {
+                binary = collapsed.len() == 6;
+                left_index = 1;
+                kind = ast::StmtType::Query;
             },
-            // Query
-            TokenType::QuestionMark => {
-                let (collapsed, articles) = collapse_articles(&tokens, i);
-                match collapsed[0].kind {
-                    TokenType::Verb => {
-                        let binary = collapsed.len() == 6;
-
-                        let mut left = ast::Identifier::try_from(collapsed[1].clone())?;
-                        if articles[0].is_some() {
-                            left.article = Some(articles[0].clone().unwrap().lexeme);
-                        }
-
-                        let mut relationship = ast::Identifier::try_from(collapsed[2].clone())?;
-                        if articles[1].is_some() {
-                            relationship.article = Some(articles[1].clone().unwrap().lexeme);
-                        }
-
-                        let mut stmt = Self {
-                            kind: ast::StmtType::Query, left, relationship, right: None, condition: None
-                        };
-
-                        if binary {
-                            let preposition = collapsed[3].lexeme.clone();
-                            stmt.relationship.preposition = Some(preposition);
-                            let right = ast::Identifier::try_from(collapsed[4].clone())?;
-                            stmt.right = Some(right)
-                        }
-
-                        return Ok((stmt, stmt_end))
-                    },
-                    TokenType::Literal | TokenType::Pronoun => {
-                        let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
-                        if let Some(tmp) = articles[0].clone() {
-                            left.article = Some(tmp.lexeme)
-                        }
-
-                        let mut relationship = ast::Identifier::try_from(collapsed[2].clone())?;
-                        if let Some(tmp) = articles[1].clone() {
-                            relationship.article = Some(tmp.lexeme)
-                        }
-                        relationship.preposition = Some(collapsed[3].lexeme.clone());
-
-                        let mut right = ast::Identifier::try_from(collapsed[4].clone())?;
-                        if let Some(tmp) = articles[2].clone() {
-                            right.article = Some(tmp.lexeme)
-                        }
-
-                        let stmt = Self {
-                            kind: ast::StmtType::Query, left, relationship, right: Some(right), condition: None
-                        };
-
-                        return Ok((stmt, stmt_end))
-                    },
-                    _ => unimplemented!()
-                }
-            }
-            _ => unimplemented!()
+            TokenType::Literal | TokenType::Pronoun => {
+                binary = true;
+                kind = ast::StmtType::Query;
+            },
+            _ => {}
         }
+
+        let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
+        if let Some(tmp) = articles[left_index].clone() {
+            left.article = Some(tmp.lexeme);
+        }
+
+        let mut relationship = ast::Identifier::try_from(collapsed[rel_index].clone())?;
+        if let Some(tmp) = articles[1].clone() {
+            relationship.article = Some(tmp.lexeme);
+        }
+
+        let mut stmt = Self { kind, left, relationship, right: None, condition: None };
+
+        if binary {
+            let preposition = collapsed[3].lexeme.clone();
+            stmt.relationship.preposition = Some(preposition);
+            let mut right = ast::Identifier::try_from(collapsed[right_index].clone())?;
+            if let Some(tmp) = articles[2].clone() {
+                right.article = Some(tmp.lexeme)
+            }
+            stmt.right = Some(right)
+        }
+
+        // Rule
+        if Self::contains(&tokens, i, TokenType::If) {
+            stmt.kind = ast::StmtType::Rule;
+            let clause_start = Self::find_next(&tokens, 0, TokenType::If) + 1;
+            stmt.condition = Some(ast::Clause::new(tokens, clause_start, stmt_end)?);
+        }
+
+        Ok((stmt, stmt_end))
     }
 }
 
