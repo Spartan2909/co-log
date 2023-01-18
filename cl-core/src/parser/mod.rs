@@ -52,11 +52,13 @@ fn index_unwrapped_operator(tokens: &Vec<scanner::Token>, mut i: usize, next_ter
     None
 }
 
-fn find_close(tokens: &Vec<scanner::Token>, i: usize, next_term: usize) -> Result<usize, usize> {
+fn find_close(tokens: &Vec<scanner::Token>, mut i: usize, next_term: usize) -> Result<usize, usize> {
     while i < next_term {
         if tokens[i].kind == TokenType::RightParen {
             return Ok(i)
         }
+
+        i += 1
     }
 
     Err(i)
