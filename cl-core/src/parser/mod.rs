@@ -15,9 +15,9 @@ pub struct ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.expected.len() == 1 {
-            write!(f, "Expected {:?}, found {:?}", self.expected[0], self.token.kind)
+            write!(f, "expected {:?}, found {:?}", self.expected[0], self.token.kind)
         } else {
-            write!(f, "Expected one of {:?}, found {:?}", self.expected, self.token.kind)
+            write!(f, "expected one of {:?}, found {:?}", self.expected, self.token.kind)
         }
     }
 }
@@ -34,7 +34,6 @@ fn index_unwrapped_operator(tokens: &Vec<scanner::Token>, mut i: usize, next_ter
     let mut open_paren = 0;
 
     while i < tokens.len() && i < next_term {
-        dbg!(&search_kind, &tokens[i]);
         match &tokens[i].kind {
             kind if kind == &search_kind => {
                 dbg!(open_paren);
@@ -68,7 +67,7 @@ fn collapse_articles(tokens: &Vec<scanner::Token>, mut i: usize) -> (Vec<scanner
     let mut articles = Vec::new();
     let mut article_last_iter = false;
 
-    while i < tokens.len() && !tokens[i].is_terminator() {
+   loop {
         if tokens[i].kind == TokenType::Article {
             articles.push(Some(tokens[i].clone()));
             article_last_iter = true
@@ -82,6 +81,7 @@ fn collapse_articles(tokens: &Vec<scanner::Token>, mut i: usize) -> (Vec<scanner
         }
 
         i += 1;
+        if i >= tokens.len() || tokens[i - 1].is_terminator() {break}
     }
 
     (result, articles)
@@ -101,11 +101,12 @@ fn type_between(tokens: &Vec<scanner::Token>, start: usize, end: usize, kind: To
 
 impl ast::Clause {
     fn new(tokens: Vec<scanner::Token>, i: usize, next_term: usize) -> Result<Self, ParseError> {
-        dbg!(tokens[i].start);
+        //dbg!(tokens[i].start);
+        dbg!(&tokens[i..next_term]);
         let (collapsed, articles) = collapse_articles(&tokens, i);
-        if let Some(op_index) = index_unwrapped_operator(&collapsed, 0, next_term, TokenType::Operator) {
+        if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
             println!("detected compound");
-            let operator = collapsed[op_index].clone();
+            let operator = tokens[op_index].clone();
             let left_clause = Some(Box::new(Self::new(tokens.clone(), i, op_index)?));
             let right_clause = Some(Box::new(Self::new(tokens.clone(), op_index + 1, next_term)?));
 
@@ -161,7 +162,7 @@ impl ast::Clause {
             } else if relationship.kind == ast::IdenType::Variable {
                 // special case for `X is not? Y`
                 right = Some(relationship);
-                relationship = ast::Identifier { kind: ast::IdenType::Literal, article: None, lexeme: String::from("equal"), preposition: None };
+                relationship = ast::Identifier { kind: ast::IdenType::Literal, article: None, lexeme: String::from("eq"), preposition: None };
             } else {
                 right = None;
             }
@@ -212,40 +213,40 @@ impl ast::Stmt {
     }
 
     fn new(tokens: Vec<scanner::Token>, i: usize) -> Result<(Self, usize), ParseError> {
-        let next_term = Self::next_terminator(&tokens, i);
+        let (_, stmt_end) = Self::next_terminator(&tokens, i);
         let binary = type_between(&tokens, i, tokens.len(), TokenType::Prepostion, TokenType::If);
-        let collapsed = collapse_articles(&tokens, i);
+        let (collapsed, articles) = collapse_articles(&tokens, i);
+        let next_term = Self::next_terminator(&collapsed, 0);
         match next_term.0.kind {
             // Fact or rule
             TokenType::FullStop => {
-                let mut left = ast::Identifier::try_from(collapsed.0[0].clone())?;
-                if collapsed.1[0].is_some() {
-                    left.article = Some(collapsed.1[0].clone().unwrap().lexeme);
+                let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
+                if articles[0].is_some() {
+                    left.article = Some(articles[0].clone().unwrap().lexeme);
                 }
 
-                let mut relationship = ast::Identifier::try_from(collapsed.0[2].clone())?;
-                if collapsed.1[1].is_some() {
-                    relationship.article = Some(collapsed.1[1].clone().unwrap().lexeme);
+                let mut relationship = ast::Identifier::try_from(collapsed[2].clone())?;
+                if articles[1].is_some() {
+                    relationship.article = Some(articles[1].clone().unwrap().lexeme);
                 }
 
                 let mut stmt = Self { kind: ast::StmtType::Fact, left, relationship, right: None, condition: None };
 
                 if binary {
-                    let preposition = collapsed.0[3].lexeme.clone();
+                    let preposition = collapsed[3].lexeme.clone();
                     stmt.relationship.preposition = Some(preposition);
-                    let right = ast::Identifier::try_from(collapsed.0[4].clone())?;
+                    let right = ast::Identifier::try_from(collapsed[4].clone())?;
                     stmt.right = Some(right)
                 }
 
                 // Rule
                 if Self::contains(&tokens, i, TokenType::If) {
                     stmt.kind = ast::StmtType::Rule;
-                    let clause_start = Self::find_next(&tokens, i, TokenType::If) + 1;
-                    dbg!(clause_start);
-                    stmt.condition = Some(ast::Clause::new(collapsed.0, clause_start, next_term.1)?);
+                    let clause_start = Self::find_next(&tokens, 0, TokenType::If) + 1;
+                    stmt.condition = Some(ast::Clause::new(tokens, clause_start, stmt_end)?);
                 }
 
-                Ok((stmt, next_term.1))
+                Ok((stmt, stmt_end))
             },
             // Query
             TokenType::QuestionMark => {
@@ -268,12 +269,10 @@ pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> 
                 let (tree, end) = ast::Stmt::new(tokens.clone(), i)?;
                 dbg!(&tree);
                 trees.push(tree);
-                i = end
+                i = end + 1
             },
             _ => return Err(ParseError { token: tokens[i].clone(), expected: Vec::from([Article, Literal, Variable, Pronoun]) })
         }
-
-        i += 1;
     }
 
     Ok(trees)
