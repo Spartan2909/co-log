@@ -36,7 +36,7 @@ fn index_unwrapped_operator(tokens: &Vec<scanner::Token>, mut i: usize, next_ter
     while i < tokens.len() && i < next_term {
         match &tokens[i].kind {
             kind if kind == &search_kind => {
-                dbg!(open_paren);
+                //dbg!(open_paren);
                 if open_paren == 0 {
                     return Some(i)
                 }
@@ -104,7 +104,7 @@ fn type_between(tokens: &Vec<scanner::Token>, start: usize, end: usize, kind: To
 impl ast::Clause {
     fn new(tokens: Vec<scanner::Token>, i: usize, next_term: usize) -> Result<Self, ParseError> {
         //dbg!(tokens[i].start);
-        dbg!(&tokens[i..next_term]);
+        //dbg!(&tokens[i..next_term]);
         let (collapsed, articles) = collapse_articles(&tokens, i);
         if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
             let operator = tokens[op_index].clone();
@@ -122,7 +122,7 @@ impl ast::Clause {
         }
 
         if collapsed[0].kind == TokenType::LeftParen {
-            let close_paren = find_close(&collapsed, 0, next_term);
+            let close_paren = find_close(&tokens, i, next_term);
 
             match close_paren {
                 Ok(close) => return Self::new(tokens, i + 1, close),
@@ -280,7 +280,7 @@ pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> 
             EOF => break,
             Article | Literal | Variable | Pronoun | Verb => {
                 let (tree, end) = ast::Stmt::new(tokens.clone(), i)?;
-                dbg!(&tree);
+                //dbg!(&tree);
                 trees.push(tree);
                 i = end + 1
             },
