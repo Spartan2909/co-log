@@ -49,6 +49,14 @@ fn get_word(source: &str, start: usize) -> String {
     String::from(&source[start..end])
 }
 
+fn find_newline(source: String, mut i: usize) -> usize {
+    while &source[i..i+1] != "\n" {
+        i += 1
+    }
+
+    i
+}
+
 pub fn scan(source: String) -> Vec<Token> {
     let mut tokens = Vec::new();
 
@@ -61,6 +69,7 @@ pub fn scan(source: String) -> Vec<Token> {
             ')' => tokens.push(Token::new(RightParen, ")", i, 1)),
             '.' => tokens.push(Token::new(FullStop, ".", i, 1)),
             '?' => tokens.push(Token::new(QuestionMark, "?", i, 1)),
+            '#' => {i = find_newline(source.clone(), i); continue},
             c if c.is_alphabetic() => {
                 let lexeme = get_word(&source, i);
                 let length = lexeme.len();
