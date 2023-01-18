@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 use super::scanner;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum IdenType { Literal, Variable }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Identifier {
     pub kind: IdenType,
     pub lexeme: String,
@@ -30,12 +30,12 @@ impl TryFrom<scanner::Token> for Identifier {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum ClauseType { Simple, Operator }
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum OperatorType { And, Or }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Clause {
     pub kind: ClauseType,
     pub negated: bool,
@@ -47,10 +47,10 @@ pub struct Clause {
     pub right_iden: Option<Identifier>
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum StmtType { Fact, Rule, Query }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Stmt {
     pub kind: StmtType,
     pub left: Identifier,

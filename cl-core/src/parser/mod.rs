@@ -292,3 +292,6 @@ pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> 
 
     Ok(trees)
 }
+
+#[cfg(test)]
+mod tests;

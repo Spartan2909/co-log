@@ -87,6 +87,176 @@ fn rule_binary() {
 }
 
 #[test]
+fn rule_binary_parentheses() {
+    test_tokens_equal("B is thing of C if (B is one and C is one) or (B is two and C is two).",
+        HashSet::from([
+            Token {
+                kind: Variable,
+                lexeme: "B".to_string(),
+                start: 0,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 2,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "thing".to_string(),
+                start: 5,
+                length: 5,
+            },
+            Token {
+                kind: Prepostion,
+                lexeme: "of".to_string(),
+                start: 11,
+                length: 2,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "C".to_string(),
+                start: 14,
+                length: 1,
+            },
+            Token {
+                kind: If,
+                lexeme: "if".to_string(),
+                start: 16,
+                length: 2,
+            },
+            Token {
+                kind: LeftParen,
+                lexeme: "(".to_string(),
+                start: 19,
+                length: 1,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "B".to_string(),
+                start: 20,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 22,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "one".to_string(),
+                start: 25,
+                length: 3,
+            },
+            Token {
+                kind: Operator,
+                lexeme: "and".to_string(),
+                start: 29,
+                length: 3,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "C".to_string(),
+                start: 33,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 35,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "one".to_string(),
+                start: 38,
+                length: 3,
+            },
+            Token {
+                kind: RightParen,
+                lexeme: ")".to_string(),
+                start: 41,
+                length: 1,
+            },
+            Token {
+                kind: Operator,
+                lexeme: "or".to_string(),
+                start: 43,
+                length: 2,
+            },
+            Token {
+                kind: LeftParen,
+                lexeme: "(".to_string(),
+                start: 46,
+                length: 1,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "B".to_string(),
+                start: 47,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 49,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "two".to_string(),
+                start: 52,
+                length: 3,
+            },
+            Token {
+                kind: Operator,
+                lexeme: "and".to_string(),
+                start: 56,
+                length: 3,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "C".to_string(),
+                start: 60,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 62,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "two".to_string(),
+                start: 65,
+                length: 3,
+            },
+            Token {
+                kind: RightParen,
+                lexeme: ")".to_string(),
+                start: 68,
+                length: 1,
+            },
+            Token {
+                kind: FullStop,
+                lexeme: ".".to_string(),
+                start: 69,
+                length: 1,
+            },
+            Token {
+                kind: EOF,
+                lexeme: "".to_string(),
+                start: 70,
+                length: 0,
+            },
+        ])
+    )
+}
+
+#[test]
 fn rule_binary_negation() {
     test_tokens_equal("X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.",
         HashSet::from([
