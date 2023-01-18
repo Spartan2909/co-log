@@ -237,8 +237,8 @@ impl ast::Stmt {
             }
         }
 
-        let mut left = ast::Identifier::try_from(collapsed[0].clone())?;
-        if let Some(tmp) = articles[left_index].clone() {
+        let mut left = ast::Identifier::try_from(collapsed[left_index].clone())?;
+        if let Some(tmp) = articles[0].clone() {
             left.article = Some(tmp.lexeme);
         }
 
