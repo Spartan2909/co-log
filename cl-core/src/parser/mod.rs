@@ -4,7 +4,7 @@ use std::fmt;
 use super::scanner;
 use super::scanner::TokenType;
 
-mod ast;
+pub mod ast;
 
 #[derive(Debug)]
 pub struct ParseError {

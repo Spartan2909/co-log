@@ -5,6 +5,7 @@ use std::path::Path;
 
 mod scanner;
 mod parser;
+mod transpiler;
 
 pub fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
@@ -15,10 +16,10 @@ pub fn read_file(path: &str) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn transpile(source: String) -> String {
+pub fn transpile(source: String) -> Result<String, parser::ParseError> {
     let tokens = scanner::scan(source);
     //dbg!(&tokens);
-    let trees = parser::parse(tokens);
-    dbg!(&trees);
-    String::from("")
+    let trees = parser::parse(tokens)?;
+    //dbg!(&trees);
+    Ok(transpiler::transpile(trees))
 }
