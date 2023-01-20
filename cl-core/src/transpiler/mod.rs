@@ -28,7 +28,8 @@ impl Identifiers {
 
     fn get_from_cl_name(&self, cl_name: String) -> Option<Identifier> {
         for identifier in &self.identifiers {
-            if identifier.cl_name == cl_name {
+            if is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name.to_lowercase()
+            || !is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name {
                 return Some(identifier.clone())
             }
         }
@@ -38,32 +39,49 @@ impl Identifiers {
 
     fn add(&mut self, statement: ast::Identifier) -> String {
         let pl_name;
+        let cl_name;
 
         if statement.kind == ast::IdenType::Variable {
             pl_name = "V".to_string() + &(self.highest_variable + 1).to_string();
+            cl_name = statement.lexeme;
+            self.highest_variable += 1
+        } else if statement.kind == ast::IdenType::Pronoun {
+            pl_name = "V".to_string() + &(self.highest_variable + 1).to_string();
+            cl_name = statement.lexeme.to_lowercase();
             self.highest_variable += 1
         } else {
             pl_name = "l".to_string() + &(self.highest_literal + 1).to_string();
+            cl_name = statement.lexeme.to_lowercase();
             self.highest_literal += 1
         }
 
         self.identifiers.push(Identifier {
-            cl_name: statement.lexeme, pl_name: pl_name.clone(), article: statement.article, preposition: statement.preposition
+            cl_name, pl_name: pl_name.clone(), article: statement.article, preposition: statement.preposition
         });
 
         pl_name
     }
 
-    fn get_or_create(&mut self, statement: ast::Identifier) -> String {
+    fn get_or_create(&mut self, identifier: ast::Identifier) -> String {
         let result;
-        if let Some(tmp) = self.get_from_cl_name(statement.lexeme.clone()) {
+
+        if identifier.kind == ast::IdenType::Pronoun {
+            return self.add(identifier)
+        }
+
+        if let Some(tmp) = self.get_from_cl_name(identifier.lexeme.clone()) {
+            println!("found existing");
             result = tmp.pl_name
         } else {
-            result = self.add(statement)
+            result = self.add(identifier)
         }
 
         result
     }
+}
+
+fn is_lowercase(s: &str) -> bool {
+    s.to_lowercase() == s
 }
 
 fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (String, Identifiers) {

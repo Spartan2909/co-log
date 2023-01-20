@@ -48,13 +48,13 @@ fn fact_binary() {
                 ),
             },
             Identifier {
-                cl_name: "John".to_string(),
+                cl_name: "john".to_string(),
                 pl_name: "l2".to_string(),
                 article: None,
                 preposition: None,
             },
             Identifier {
-                cl_name: "Jack".to_string(),
+                cl_name: "jack".to_string(),
                 pl_name: "l3".to_string(),
                 article: None,
                 preposition: None,
@@ -288,13 +288,13 @@ fn query_literal_literal() {
                 ),
             },
             Identifier {
-                cl_name: "John".to_string(),
+                cl_name: "john".to_string(),
                 pl_name: "l2".to_string(),
                 article: None,
                 preposition: None,
             },
             Identifier {
-                cl_name: "Jack".to_string(),
+                cl_name: "jack".to_string(),
                 pl_name: "l3".to_string(),
                 article: None,
                 preposition: None,
@@ -320,7 +320,7 @@ fn query_literal_pronoun() {
                 ),
             },
             Identifier {
-                cl_name: "John".to_string(),
+                cl_name: "john".to_string(),
                 pl_name: "l2".to_string(),
                 article: None,
                 preposition: None,
@@ -352,14 +352,46 @@ fn query_pronoun_literal() {
                 ),
             },
             Identifier {
-                cl_name: "Who".to_string(),
+                cl_name: "who".to_string(),
                 pl_name: "V1".to_string(),
                 article: None,
                 preposition: None,
             },
             Identifier {
-                cl_name: "Jane".to_string(),
+                cl_name: "jane".to_string(),
                 pl_name: "l2".to_string(),
+                article: None,
+                preposition: None,
+            },
+        ]),
+    ))
+}
+
+#[test]
+fn query_pronoun_pronoun() {
+    assert_eq!(transpile("Who is the sister of who?"), (
+        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\n".to_string(),
+        "l1(V1, V2).\n".to_string(),
+        Vec::from([
+            Identifier {
+                cl_name: "sister".to_string(),
+                pl_name: "l1".to_string(),
+                article: Some(
+                    "the".to_string(),
+                ),
+                preposition: Some(
+                    "of".to_string(),
+                ),
+            },
+            Identifier {
+                cl_name: "who".to_string(),
+                pl_name: "V1".to_string(),
+                article: None,
+                preposition: None,
+            },
+            Identifier {
+                cl_name: "who".to_string(),
+                pl_name: "V2".to_string(),
                 article: None,
                 preposition: None,
             },

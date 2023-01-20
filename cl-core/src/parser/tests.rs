@@ -694,7 +694,7 @@ fn query_literal_pronoun() {
             },
             right: Some(
                 Identifier {
-                    kind: Variable,
+                    kind: Pronoun,
                     lexeme: "who".to_string(),
                     article: None,
                     preposition: None,
@@ -711,7 +711,7 @@ fn query_pronoun_literal() {
         Stmt {
             kind: Query,
             left: Identifier {
-                kind: Variable,
+                kind: Pronoun,
                 lexeme: "Who".to_string(),
                 article: None,
                 preposition: None,
@@ -745,7 +745,7 @@ fn query_pronoun_pronoun() {
         Stmt {
             kind: Query,
             left: Identifier {
-                kind: Variable,
+                kind: Pronoun,
                 lexeme: "Who".to_string(),
                 article: None,
                 preposition: None,
@@ -762,7 +762,7 @@ fn query_pronoun_pronoun() {
             },
             right: Some(
                 Identifier {
-                    kind: Variable,
+                    kind: Pronoun,
                     lexeme: "who".to_string(),
                     article: None,
                     preposition: None,

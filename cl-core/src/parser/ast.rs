@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use super::scanner;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum IdenType { Literal, Variable }
+pub enum IdenType { Literal, Variable, Pronoun }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Identifier {
@@ -18,8 +18,10 @@ impl TryFrom<scanner::Token> for Identifier {
     fn try_from(value: scanner::Token) -> Result<Self, super::ParseError> {
         let kind = if value.kind == scanner::TokenType::Literal {
             IdenType::Literal
-        } else if value.kind == scanner::TokenType::Variable || value.kind == scanner::TokenType::Pronoun {
+        } else if value.kind == scanner::TokenType::Variable {
             IdenType::Variable
+        } else if value.kind == scanner::TokenType::Pronoun {
+            IdenType::Pronoun
         } else {
             return Err(super::ParseError {
                 token: value.clone(), expected: Vec::from([scanner::TokenType::Literal, scanner::TokenType::Variable]) 
