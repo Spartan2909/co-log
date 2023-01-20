@@ -1,23 +1,34 @@
 use crate::parser::ast;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Identifier {
+struct Identifier {
     cl_name: String,
     pl_name: String,
     article: Option<String>,
     preposition: Option<String>
 }
 
-#[derive(Debug, Clone)]
-struct Identifiers {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Identifiers {
     identifiers: Vec<Identifier>,
-    highest_literal: u64,
-    highest_variable: u64
+    highest_literal: u16,
+    highest_variable: u16
 }
 
 impl From<Vec<Identifier>> for Identifiers {
     fn from(identifiers: Vec<Identifier>) -> Self {
-        Self { identifiers, highest_literal: 0, highest_variable: 0 }
+        let mut highest_literal = 0;
+        let mut highest_variable = 0;
+
+        for identifier in &identifiers {
+            match &identifier.pl_name.as_str()[0..1] {
+                "V" => highest_variable = identifier.pl_name[1..].parse::<u16>().unwrap(),
+                "l" => highest_literal = identifier.pl_name[1..].parse::<u16>().unwrap(),
+                &_ => {} // Unreachable
+            }
+        }
+
+        Self { identifiers, highest_literal, highest_variable }
     }
 }
 
@@ -70,7 +81,6 @@ impl Identifiers {
         }
 
         if let Some(tmp) = self.get_from_cl_name(identifier.lexeme.clone()) {
-            println!("found existing");
             result = tmp.pl_name
         } else {
             result = self.add(identifier)
@@ -114,11 +124,15 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
     }
 }
 
-pub fn transpile(trees: Vec<ast::Stmt>) -> (String, String, Vec<Identifier>) {
+pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>) -> (String, String, Identifiers) {
+    let mut identifiers = match initial_identifiers {
+        Some(tmp) => tmp,
+        None => Identifiers::new()
+    };
+
     let mut facts = String::from("style_check(-discontiguous).\n");
     let mut rules = String::from("eq(X, Y) :- X == Y.\n");
     let mut queries = String::new();
-    let mut identifiers = Identifiers::new();
 
     for tree in trees {
         let mut result = String::new();
@@ -146,7 +160,7 @@ pub fn transpile(trees: Vec<ast::Stmt>) -> (String, String, Vec<Identifier>) {
         }
     }
 
-    (facts + &rules, queries, identifiers.identifiers)
+    (facts + &rules, queries, identifiers)
 }
 
 #[cfg(test)]

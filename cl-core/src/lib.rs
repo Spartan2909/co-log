@@ -16,10 +16,10 @@ pub fn read_file(path: &str) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn transpile(source: String) -> Result<(String, String, Vec<transpiler::Identifier>), parser::ParseError> {
+pub fn transpile(source: String) -> Result<(String, String, transpiler::Identifiers), parser::ParseError> {
     let tokens = scanner::scan(source);
     //dbg!(&tokens);
     let trees = parser::parse(tokens)?;
     //dbg!(&trees);
-    Ok(transpiler::transpile(trees))
+    Ok(transpiler::transpile(trees, None))
 }
