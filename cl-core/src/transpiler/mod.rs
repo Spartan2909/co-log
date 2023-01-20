@@ -1,6 +1,6 @@
 use crate::parser::ast;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {
     cl_name: String,
     pl_name: String,
@@ -13,6 +13,12 @@ struct Identifiers {
     identifiers: Vec<Identifier>,
     highest_literal: u64,
     highest_variable: u64
+}
+
+impl From<Vec<Identifier>> for Identifiers {
+    fn from(identifiers: Vec<Identifier>) -> Self {
+        Self { identifiers, highest_literal: 0, highest_variable: 0 }
+    }
 }
 
 impl Identifiers {
@@ -51,10 +57,8 @@ impl Identifiers {
     fn get_or_create(&mut self, statement: ast::Identifier) -> String {
         let result;
         if let Some(tmp) = self.get_from_cl_name(statement.lexeme.clone()) {
-            println!("found exisiting name");
             result = tmp.pl_name
         } else {
-            println!("adding name");
             result = self.add(statement)
         }
 
@@ -126,3 +130,6 @@ pub fn transpile(trees: Vec<ast::Stmt>) -> (String, String, Vec<Identifier>) {
 
     (facts + &rules, queries, identifiers.identifiers)
 }
+
+#[cfg(test)]
+mod tests;
