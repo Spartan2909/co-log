@@ -16,3 +16,6 @@ target/
 # Replit stuff
 .replit
 replit.nix
+
+# Generated Prolog
+*.pl

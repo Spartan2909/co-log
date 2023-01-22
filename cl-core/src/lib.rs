@@ -6,6 +6,7 @@ use std::path::Path;
 mod scanner;
 mod parser;
 mod transpiler;
+pub mod communicator;
 
 pub fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
