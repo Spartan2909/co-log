@@ -17,7 +17,9 @@ X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is 
         Is John the brother of Jack?
     "));*/
     let pl = cl_core::transpile(String::from("X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.")).unwrap();
-    let r = cl_core::communicator::start_prolog("C:/Users/caleb/Documents/GitHub/co-log/test.pl", "call_nth((thing(X, Y), write(X), write(\",\"), writeln(Y)), 100).");
-    dbg!(r);
+    cl_core::communicator::start_prolog();
+    //let r = cl_core::communicator::start_prolog("C:/Users/caleb/Documents/GitHub/co-log/test.pl", "call_nth((thing(X, Y), write(X), write(\",\"), writeln(Y)), 100).");
+    //dbg!(r);
     //println!("{}", r.unwrap().0);
+    println!("test");
 }

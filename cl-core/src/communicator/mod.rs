@@ -1,63 +1,43 @@
-use std::io::{BufRead, BufReader, Write};
-use std::process::{Command, Stdio};
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::sync::Mutex;
+use std::ptr::{null, null_mut};
+use swipl_fli::*;
 
-use std::thread;
-use std::thread::sleep;
-use std::time::Duration;
+struct Cleanup;
 
-fn start_process(sender: Sender<String>, receiver: Receiver<String>, location: &str) {
-    let child = Command::new("swipl")
-        .arg(location)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to start process");
-
-    thread::spawn(move || {
-        let mut f = BufReader::new(child.stdout.unwrap());
-        let mut stdin = child.stdin.unwrap();
-        for line in receiver {
-            stdin.write_all(line.as_bytes()).unwrap();
-            let mut buf = String::new();
-            match f.read_line(&mut buf) {
-                Ok(_) => {
-                    sender.send(buf).unwrap();
-                    continue;
-                }
-                Err(e) => {
-                    println!("Error reading line: {:?}", e);
-                    break;
-                }
-            }
-        }
-    });
+impl Drop for Cleanup {
+    fn drop(&mut self) {
+        println!("running destructor");
+        unsafe { PL_halt(0); }
+    }
 }
 
-fn start_command_thread(mutex: Mutex<Sender<String>>, command: String) {
-    thread::spawn(move || {
-        let sender = mutex.lock().unwrap();
-        sleep(Duration::from_secs(1));
-        sender
-            .send(command)
-            .unwrap();
-    });
+const _CLEANUP: Cleanup = Cleanup;
+
+fn str_to_ptr(s: &str) -> *const i8 {
+    return s.as_ptr() as *const i8
 }
 
-pub fn start_prolog(location: &str, command: &str) {
-    let (tx1, rx1) = channel();
-    let (tx2, rx2) = channel();
+fn str_to_mut_ptr(s: &str) -> *mut i8 {
+    return s.as_ptr() as *mut i8
+}
 
-    start_process(tx1, rx2, location);
+unsafe fn consult_file(filename: &str) {
+    let p = PL_predicate(str_to_ptr("consult"), 1, null());
+    let a = PL_new_term_ref();
+    PL_put_atom_chars(a, str_to_ptr(filename));
+    PL_call_predicate(null_mut(), PL_Q_NORMAL.try_into().unwrap(), p, a);
+}
 
-    println!("started swipl");
+pub fn start_prolog() {
+    unsafe {
+        let argv = [str_to_mut_ptr("consult_file"), str_to_mut_ptr("-q")].as_mut_ptr();
+        PL_initialise(2, null_mut());
+        //consult_file("filename");
+        //PL_predicate("name".as_ptr() as *const i8, 4, "module".as_ptr() as *const i8);
+    }
 
-    tx2.send(format!("one(a).\n")).unwrap();
-    //start_command_thread(Mutex::new(tx2), command.to_string());
+    println!("test");
+}
 
-    println!("started thread");
+pub fn query_prolog() {
 
-    println!("{:?}", Vec::from_iter(rx1))
 }

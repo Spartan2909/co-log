@@ -8,3 +8,4 @@ authors.workspace = true
 
 [dependencies]
 subprocess = "0.2.9"
+swipl-fli = "0.3.4"
