@@ -1,5 +1,4 @@
 use std::env::current_exe;
-use std::path::PathBuf;
 use swipl_fli::*;
 
 struct Cleanup;
@@ -13,16 +12,21 @@ impl Drop for Cleanup {
 
 const _CLEANUP: Cleanup = Cleanup;
 
-fn path_to_mut_ptr(p: PathBuf) -> *mut i8 {
-    p.to_str().unwrap().as_ptr() as *mut i8
+fn remove_prefix(s: &str) -> &str {
+    if &s[..4] == r"\\?\" {
+        &s[4..]
+    } else {
+        s
+    }
 }
 
 pub fn start_prolog() {
     let mut path = current_exe().unwrap();
     path.pop();
     path.push("temp.pl");
+    let trimmed = remove_prefix(path.to_str().unwrap());
     unsafe {
-        let argv = ["swipl".as_ptr() as *mut i8, path_to_mut_ptr(path)].as_mut_ptr();
+        let argv = ["swipl".as_ptr() as *mut i8, trimmed.as_ptr() as *mut i8].as_mut_ptr();
         PL_initialise(2, argv);
         //PL_predicate("name".as_ptr() as *const i8, 4, "module".as_ptr() as *const i8);
     }
