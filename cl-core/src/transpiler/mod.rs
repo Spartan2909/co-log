@@ -124,7 +124,7 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
     }
 }
 
-pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>) -> (String, String, Identifiers) {
+pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>) -> (String, Vec<String>, Identifiers) {
     let mut identifiers = match initial_identifiers {
         Some(tmp) => tmp,
         None => Identifiers::new()
@@ -132,7 +132,7 @@ pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>
 
     let mut facts = String::from("style_check(-discontiguous).\n");
     let mut rules = String::from("eq(X, Y) :- X == Y.\n");
-    let mut queries = String::new();
+    let mut queries = Vec::new();
 
     for tree in trees {
         let mut result = String::new();
@@ -156,7 +156,7 @@ pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>
         match tree.kind {
             ast::StmtType::Fact => facts += &result,
             ast::StmtType::Rule => rules += &result,
-            ast::StmtType::Query => queries += &result
+            ast::StmtType::Query => queries.push(result)
         }
     }
 
