@@ -5,7 +5,7 @@ on:
     branches: [main]
     
 jobs:
-  test:
+  test-core:
     name: Test Core
     runs-on: ubuntu-latest
     
@@ -24,3 +24,23 @@ jobs:
         
       - name: Test
         run: cargo swipl test
+  
+  test-tui:
+    name: Test TUI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositiory
+        uses: actions/checkout@v3
+
+      - name: Install swipl
+        run : |
+          sudo apt-get install software-properties-common
+          sudo apt-add-repository ppa:swi-prolog/stable
+          sudo apt-get update && sudo apt-get install swi-prolog
+
+      - name: Install cargo-swipl
+        run: cargo install cargo-swipl
+        
+      - name: Run binary
+        run: cargo swipl run
