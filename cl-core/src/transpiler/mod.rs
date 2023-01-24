@@ -131,7 +131,7 @@ pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>
     };
 
     let mut facts = String::from("style_check(-discontiguous).\n");
-    let mut rules = String::from("eq(X, Y) :- X == Y.\n\r");
+    let mut rules = String::from("eq(X, Y) :- X == Y.\n");
     let mut queries = String::new();
 
     for tree in trees {
