@@ -16,6 +16,7 @@ pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
 
     let location = remove_prefix(source);
     let term = term!{ context: #location }?;
+
     context.call_once(consult, [&term])?;
     
     Ok(context)
