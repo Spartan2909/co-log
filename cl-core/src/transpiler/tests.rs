@@ -8,7 +8,7 @@ fn transpile(source: &str) -> (String, Vec<String>, Identifiers) {
 #[test]
 fn fact_unary() {
     assert_eq!(transpile("A hamster is a mammal."), (
-        "style_check(-discontiguous).\nl1(l2).\neq(X, Y) :- X == Y.\n".to_string(),
+        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(l2).\n".to_string(),
         vec![],
         Identifiers {
             identifiers: vec![
@@ -38,7 +38,7 @@ fn fact_unary() {
 #[test]
 fn fact_binary() {
     assert_eq!(transpile("John is the brother of Jack."), (
-        "style_check(-discontiguous).\nl1(l2, l3).\neq(X, Y) :- X == Y.\n".to_string(),
+        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(l2, l3).\n".to_string(),
         vec![],
         Identifiers {
             identifiers: vec![
