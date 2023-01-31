@@ -15,6 +15,13 @@ pub struct Identifiers {
     highest_variable: u16
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Query {
+    pub relationship: String,
+    pub left: String,
+    pub right: Option<String>
+}
+
 impl From<Vec<Identifier>> for Identifiers {
     fn from(identifiers: Vec<Identifier>) -> Self {
         let mut highest_literal = 0;
@@ -124,7 +131,7 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
     }
 }
 
-pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>) -> (String, Vec<String>, Identifiers) {
+pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>) -> (String, Vec<Query>, Identifiers) {
     let mut identifiers = match initial_identifiers {
         Some(tmp) => tmp,
         None => Identifiers::new()
@@ -134,28 +141,34 @@ pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>
     let mut queries = Vec::new();
 
     for tree in trees {
-        let mut result = String::new();
-
-        result += &format!("{}(", identifiers.get_or_create(tree.relationship));
-        result += &identifiers.get_or_create(tree.left);
-        if let Some(right) = tree.right {
-            result += &format!(", {}", identifiers.get_or_create(right))
-        }
-        result += ")";
-
-        if tree.kind == ast::StmtType::Rule {
-            result += " :- ";
-            let clause;
-            (clause, identifiers) = transpile_clause(tree.condition.unwrap(), identifiers);
-            result += &clause;
-        }
-
-        result += ".\n";
-
         match tree.kind {
-            ast::StmtType::Fact => output += &result,
-            ast::StmtType::Rule => output += &result,
-            ast::StmtType::Query => queries.push(result)
+            ast::StmtType::Query => {
+                let relationship = identifiers.get_or_create(tree.relationship);
+                let left = identifiers.get_or_create(tree.left);
+                let right = match tree.right {
+                    Some(tmp) => Some(identifiers.get_or_create(tmp)),
+                    None => None
+                };
+
+                queries.push(Query { relationship, left, right })
+            },
+            _ => {
+                output += &format!("{}(", identifiers.get_or_create(tree.relationship));
+                output += &identifiers.get_or_create(tree.left);
+                if let Some(right) = tree.right {
+                    output += &format!(", {}", identifiers.get_or_create(right))
+                }
+                output += ")";
+
+                if tree.kind == ast::StmtType::Rule {
+                    output += " :- ";
+                    let clause;
+                    (clause, identifiers) = transpile_clause(tree.condition.unwrap(), identifiers);
+                    output += &clause;
+                }
+
+                output += ".\n";
+            }
         }
     }
 

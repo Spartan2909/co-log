@@ -1,7 +1,7 @@
-use super::{ Identifier, Identifiers };
+use super::{ Identifier, Identifiers, Query };
 use crate::{ scanner, parser };
 
-fn transpile(source: &str) -> (String, Vec<String>, Identifiers) {
+fn transpile(source: &str) -> (String, Vec<Query>, Identifiers) {
     super::transpile(parser::parse(scanner::scan(source.to_string())).unwrap(), None)
 }
 
@@ -274,7 +274,11 @@ fn query_literal() {
     assert_eq!(transpile("Is a hamster a mammal?"), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\n".to_string(),
         vec![
-            "l1(l2).\n".to_string(),
+            Query {
+                relationship: "l1".to_string(),
+                left: "l2".to_string(),
+                right: None
+            }
         ],
         Identifiers {
             identifiers: vec![
@@ -306,7 +310,13 @@ fn query_literal_literal() {
     assert_eq!(transpile("Is John the brother of Jack?"), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\n".to_string(),
         vec![
-            "l1(l2, l3).\n".to_string(),
+            Query {
+                left: "l2".to_string(),
+                relationship: "l1".to_string(),
+                right: Some(
+                    "l3".to_string()
+                )
+            }
         ],
         Identifiers {
             identifiers: vec![
@@ -344,7 +354,13 @@ fn query_literal_pronoun() {
     assert_eq!(transpile("John is the brother of who?"), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\n".to_string(),
         vec![
-            "l1(l2, V1).\n".to_string(),
+            Query {
+                left: "l2".to_string(),
+                relationship: "l1".to_string(),
+                right: Some(
+                    "V1".to_string()
+                )
+            }
         ],
         Identifiers {
             identifiers: vec![
@@ -382,7 +398,13 @@ fn query_pronoun_literal() {
     assert_eq!(transpile("Who is the brother of Jane?"), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\n".to_string(),
         vec![
-            "l1(V1, l2).\n".to_string(),
+            Query {
+                left: "V1".to_string(),
+                relationship: "l1".to_string(),
+                right: Some(
+                    "l2".to_string()
+                )
+            }
         ],
         Identifiers {
             identifiers: vec![
@@ -420,7 +442,13 @@ fn query_pronoun_pronoun() {
     assert_eq!(transpile("Who is the sister of who?"), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\n".to_string(),
         vec![
-            "l1(V1, V2).\n".to_string(),
+            Query {
+                left: "V1".to_string(),
+                relationship: "l1".to_string(),
+                right: Some(
+                    "V2".to_string()
+                )
+            }
         ],
         Identifiers {
             identifiers: vec![

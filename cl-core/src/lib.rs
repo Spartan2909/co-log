@@ -17,7 +17,7 @@ pub fn read_file(path: &str) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn transpile(source: String) -> Result<(String, Vec<String>, transpiler::Identifiers), parser::ParseError> {
+pub fn transpile(source: String) -> Result<(String, Vec<transpiler::Query>, transpiler::Identifiers), parser::ParseError> {
     let tokens = scanner::scan(source);
     //dbg!(&tokens);
     let trees = parser::parse(tokens)?;
