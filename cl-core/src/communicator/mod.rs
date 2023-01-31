@@ -24,6 +24,8 @@ pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
 }
 
 fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Query) -> Result<(), PrologError> {
+    let mut terms = Vec::new();
+
     let open_query = match query.right {
         None => {
             let pred: CallablePredicate<1> = unsafe {
@@ -33,7 +35,10 @@ fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Que
             };
 
             let left = query.left;
-            context.open(pred, [&term!{context: #left}?])
+            let term = term!{context: #left}?;
+            terms.push(&term);
+            
+            context.open(pred, [&term])
         },
         Some(right) => {
             let pred: CallablePredicate<2> = unsafe {
@@ -43,7 +48,12 @@ fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Que
             };
 
             let left = query.left;
-            context.open(pred, [&term!{context: #left}?, &term!{context: #right}?])
+            let term_l = term!{context: #left}?;
+            let term_r = term!{context: #right}?;
+            terms.push(&term_l);
+            terms.push(&term_r);
+
+            context.open(pred, [&term_l, &term_r])
         }
     };
 
