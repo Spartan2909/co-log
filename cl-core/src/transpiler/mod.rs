@@ -146,7 +146,7 @@ pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>
                 let relationship = identifiers.get_or_create(tree.relationship);
                 let left = identifiers.get_or_create(tree.left);
                 let right = match tree.right {
-                    Some(tmp) => Some(identifiers.get_or_create(tmp)),
+                    Some(iden) => Some(identifiers.get_or_create(iden)),
                     None => None
                 };
 
