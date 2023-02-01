@@ -28,13 +28,14 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
     let term;
     let term_l;
     let term_r;
+    let relationship = query.relationship.as_str();
 
     let open_query = match query.right {
         None => {
             let pred: CallablePredicate<1> = unsafe {
                 CallablePredicate::wrap(
-                    swipl_fli::PL_predicate(query.relationship.as_ptr() as *const i8, 1, std::ptr::null())
-                )
+                    swipl_fli::PL_predicate(relationship.as_ptr() as *const i8, 1, std::ptr::null())
+                )   
             };
 
             let left = query.left;
@@ -46,7 +47,7 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
         Some(right) => {
             let pred: CallablePredicate<2> = unsafe {
                 CallablePredicate::wrap(
-                    swipl_fli::PL_predicate(query.relationship.as_ptr() as *const i8, 2, std::ptr::null())
+                    swipl_fli::PL_predicate(relationship.as_ptr() as *const i8, 2, std::ptr::null())
                 )
             };
 
