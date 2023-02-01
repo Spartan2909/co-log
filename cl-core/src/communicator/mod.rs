@@ -23,8 +23,11 @@ pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
     Ok(context)
 }
 
-fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Query) -> Result<(), PrologError> {
+pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Query) -> PrologResult<()> {
     let mut terms = Vec::new();
+    let term;
+    let term_l;
+    let term_r;
 
     let open_query = match query.right {
         None => {
@@ -35,7 +38,7 @@ fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Que
             };
 
             let left = query.left;
-            let term = term!{context: #left}?;
+            term = term!{context: #left}?;
             terms.push(&term);
             
             context.open(pred, [&term])
@@ -48,14 +51,34 @@ fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Que
             };
 
             let left = query.left;
-            let term_l = term!{context: #left}?;
-            let term_r = term!{context: #right}?;
+            term_l = term!{context: #left}?;
+            term_r = term!{context: #right}?;
             terms.push(&term_l);
             terms.push(&term_r);
 
             context.open(pred, [&term_l, &term_r])
         }
     };
+
+    println!("opened query");
+
+    dbg!(&terms);
+
+    let mut soln = true;
+    while soln {
+        println!("getting solution");
+        soln = match open_query.next_solution() {
+            Ok(next) => next,
+            Err(e) => match e {
+                PrologError::Failure => false,
+                PrologError::Exception => return Err(e)
+            }
+        }
+    }
+
+    dbg!(&terms);
+
+    open_query.cut();
 
     Ok(())
 }
