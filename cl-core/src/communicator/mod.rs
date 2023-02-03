@@ -30,26 +30,25 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
     let term_r;
     let relationship = query.relationship.as_str();
 
+    let module = Module::new("user");
+
     let open_query = match query.right {
         None => {
-            let pred: CallablePredicate<1> = unsafe {
-                CallablePredicate::wrap(
-                    swipl_fli::PL_predicate(relationship.as_ptr() as *const i8, 1, std::ptr::null())
-                )   
-            };
+            let pred: CallablePredicate<1> = CallablePredicate::new(
+                Predicate::new(Functor::new(relationship, 1), module)
+            ).unwrap();
 
             let left = query.left;
-            term = term!{context: #left}?;
+            //term = term!{context: #left}?;
+            term = context.term_from_string(&left)?;
             terms.push(&term);
             
             context.open(pred, [&term])
         },
         Some(right) => {
-            let pred: CallablePredicate<2> = unsafe {
-                CallablePredicate::wrap(
-                    swipl_fli::PL_predicate(relationship.as_ptr() as *const i8, 2, std::ptr::null())
-                )
-            };
+            let pred: CallablePredicate<2> = CallablePredicate::new(
+                Predicate::new(Functor::new(relationship, 2), module)
+            ).unwrap();
 
             let left = query.left;
             term_l = term!{context: #left}?;
@@ -74,10 +73,11 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
                 PrologError::Failure => false,
                 PrologError::Exception => return Err(e)
             }
-        }
+        };
+        dbg!(terms[0].get::<String>(), terms[0].get::<Vec<u8>>(), terms[0].is_var(), terms[0].is_atom());
     }
 
-    dbg!(&terms);
+    dbg!(&terms[0].get::<String>(), &terms[0].is_var());
 
     open_query.cut();
 
