@@ -64,20 +64,22 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
 
     dbg!(&terms);
 
-    let mut soln = true;
-    while soln {
+    let mut next = true;
+    let mut soln = false;
+    while next {
         println!("getting solution");
-        soln = match open_query.next_solution() {
-            Ok(next) => next,
+        next = match dbg!(open_query.next_solution()) {
+            Ok(not_last_soln) => {soln = true; not_last_soln},
             Err(e) => match e {
                 PrologError::Failure => false,
                 PrologError::Exception => return Err(e)
             }
         };
-        dbg!(terms[0].get::<String>(), terms[0].get::<Vec<u8>>(), terms[0].is_var(), terms[0].is_atom());
+        //soln = soln || next;
+        dbg!(terms[0].get::<String>(), terms[0].get::<Vec<u8>>(), terms[0].is_var(), terms[0].is_atom(), terms[0].is_string());
     }
 
-    dbg!(&terms[0].get::<String>(), &terms[0].is_var());
+    dbg!(&terms[0].get::<String>(), &terms[0].is_var(), soln);
 
     open_query.cut();
 
