@@ -8,6 +8,14 @@ mod parser;
 pub mod transpiler;
 pub mod communicator;
 
+pub fn remove_path_prefix(s: &str) -> &str {
+    if &s[..4] == r"\\?\" {
+        &s[4..]
+    } else {
+        s
+    }
+}
+
 pub fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
     let mut file = File::open(&path)?;

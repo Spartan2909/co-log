@@ -1,9 +1,154 @@
 use cl_core;
-use std::env;
+use std::{
+    env,
+    fs,
+    process::ExitCode,
+    io::{
+        self,
+        BufRead
+    }
+};
+use directories::ProjectDirs;
+use scrawl;
 
-fn main() {
+mod text;
+use text::*;
+
+fn get_user_input() -> String {
+    std::io::stdin().lock().lines().nth(0).unwrap().unwrap().to_lowercase()
+}
+
+fn create_file(file: Option<String>) -> io::Result<()> {
+    let mut chosen_file = "".to_string();
+
+    let project_dirs = ProjectDirs::from("com", "Kleb", "co-log").unwrap();
+    let mut user_file_folder = project_dirs.data_dir().to_path_buf();
+    user_file_folder.push("user_files");
+
+    if !user_file_folder.exists() {
+        println!("doesn't exist");
+        fs::create_dir_all(user_file_folder.clone())?;
+        println!("created");
+    }
+
+    match file {
+        None => {
+            let mut user_files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
+
+            let mut valid = false;
+            while !valid {
+                print!("{CREATE_FILE_TEXT}");
+
+                chosen_file = get_user_input();
+
+                if user_files.any(
+                    |f| f.unwrap().path().file_name().unwrap().to_str() == Some(&(chosen_file.clone() + ".cl"))
+                ) {
+                    println!("File already exists. Would you like to edit this file? Y|N");
+
+                    match get_user_input().to_lowercase().as_str() {
+                        "y" => edit_file(Some(chosen_file.clone())),
+                        _ => {}
+                    }
+                } else {
+                    valid = true;
+                }
+            }
+        }
+        Some(file_name) => chosen_file = file_name
+    }
+
+    user_file_folder.push(chosen_file.clone() + ".cl");
+
+    fs::File::create(user_file_folder)?;
+
+    println!("Would you like to edit this file? Y|N");
+
+    match get_user_input().to_lowercase().as_str() {
+        "y" => edit_file(Some(chosen_file)),
+        _ => {}
+    }
+
+    Ok(())
+}
+
+fn get_file_name(file: fs::DirEntry) -> String {
+    let file_name = file.path().file_name().unwrap().to_str().unwrap().to_string();
+    let dot = file_name.chars().position(|c| c == '.').unwrap();
+
+    file_name[..dot].to_string()
+}
+
+fn edit_file(file: Option<String>) {
+    let file_to_edit;
+
+    match file {
+        None => {
+            let project_dirs = ProjectDirs::from("com", "Kleb", "co-log").unwrap();
+            let mut user_file_folder = project_dirs.data_dir().to_path_buf();
+            user_file_folder.push("user_files");
+
+            print!("{EDIT_FILE_TEXT}");
+
+            let files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
+
+            for user_file in files {
+                println!("- {}", get_file_name(user_file.unwrap()));
+            }
+
+            println!("");
+
+            let mut files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
+
+            let user_file = get_user_input();
+            while !files.any(|f| f.unwrap().path().file_name().unwrap().to_str() == Some(&(user_file.clone() + ".cl"))) {
+                println!("File not found. Would you like to create this file? Y|N");
+                match get_user_input().to_lowercase().as_str() {
+                    "y" => {create_file(Some(user_file.clone())).unwrap(); return},
+                    _ => {}
+                }
+            }
+
+            user_file_folder.push(user_file + ".cl");
+
+            file_to_edit = user_file_folder.to_str().unwrap().to_string();
+        },
+        Some(filename) => {
+            file_to_edit = filename;
+        }
+    }
+
+    scrawl::edit_file(&(file_to_edit)).unwrap();
+
+    println!("Would you like to query the file? Y|N");
+    match get_user_input().to_lowercase().as_str() {
+        "y" => {query_file(Some(file_to_edit)); return},
+        _ => {}
+    }
+
+}
+
+fn query_file(file: Option<String>) {
+    todo!()
+}
+
+fn main() -> ExitCode {
+    print!("{MAIN_MENU_TEXT}");
+    loop {
+        match get_user_input().to_lowercase().as_str() {
+            "c" => {create_file(None).unwrap(); print!("{MAIN_MENU_TEXT}")},
+            "e" => {edit_file(None); print!("{MAIN_MENU_TEXT}")},
+            "q" => {query_file(None); print!("{MAIN_MENU_TEXT}")},
+            "t" => todo!(),
+            "x" => return ExitCode::SUCCESS,
+            _ => println!("Unrecognised input")
+        }
+    }
+}
+
+fn _old_main() {
     env::set_var("RUST_BACKTRACE", "full");
-    let pl = cl_core::transpile(String::from("X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.")).unwrap();
+    let _pl = cl_core::transpile(String::from("X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.")).unwrap();
     let mut path = env::current_exe().unwrap();
     path.pop();
     path.push("temp.pl");
