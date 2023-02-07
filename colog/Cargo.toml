@@ -10,3 +10,4 @@ authors.workspace = true
 directories = "4.0"
 scrawl = "2.0"
 cl_core = { path = "../cl-core" }
+clap = { version = "4.1", features = ["derive"] }

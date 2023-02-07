@@ -10,9 +10,17 @@ use std::{
 };
 use directories::ProjectDirs;
 use scrawl;
+use clap::Parser;
 
 mod text;
 use text::*;
+
+#[derive(Debug, Parser)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// The file to query
+    file: Option<String>
+}
 
 fn get_user_input() -> String {
     std::io::stdin().lock().lines().nth(0).unwrap().unwrap().to_lowercase()
@@ -60,12 +68,12 @@ fn create_file(file: Option<String>) -> io::Result<()> {
 
     user_file_folder.push(chosen_file.clone() + ".cl");
 
-    fs::File::create(user_file_folder)?;
+    fs::File::create(user_file_folder.clone())?;
 
     println!("Would you like to edit this file? Y|N");
 
     match get_user_input().to_lowercase().as_str() {
-        "y" => edit_file(Some(chosen_file)),
+        "y" => edit_file(Some(user_file_folder.to_str().unwrap().to_string())),
         _ => {}
     }
 
@@ -100,12 +108,12 @@ fn edit_file(file: Option<String>) {
 
             let mut files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
 
-            let user_file = get_user_input();
+            let mut user_file = get_user_input();
             while !files.any(|f| f.unwrap().path().file_name().unwrap().to_str() == Some(&(user_file.clone() + ".cl"))) {
                 println!("File not found. Would you like to create this file? Y|N");
                 match get_user_input().to_lowercase().as_str() {
                     "y" => {create_file(Some(user_file.clone())).unwrap(); return},
-                    _ => {}
+                    _ => user_file = get_user_input()
                 }
             }
 
@@ -133,15 +141,23 @@ fn query_file(file: Option<String>) {
 }
 
 fn main() -> ExitCode {
-    print!("{MAIN_MENU_TEXT}");
-    loop {
-        match get_user_input().to_lowercase().as_str() {
-            "c" => {create_file(None).unwrap(); print!("{MAIN_MENU_TEXT}")},
-            "e" => {edit_file(None); print!("{MAIN_MENU_TEXT}")},
-            "q" => {query_file(None); print!("{MAIN_MENU_TEXT}")},
-            "t" => todo!(),
-            "x" => return ExitCode::SUCCESS,
-            _ => println!("Unrecognised input")
+    let args = Args::parse();
+
+    if let Some(file) = args.file {
+        query_file(Some(file));
+        
+        ExitCode::SUCCESS
+    } else {
+        print!("{MAIN_MENU_TEXT}");
+        loop {
+            match get_user_input().to_lowercase().as_str() {
+                "c" => {create_file(None).unwrap(); print!("{MAIN_MENU_TEXT}")},
+                "e" => {edit_file(None); print!("{MAIN_MENU_TEXT}")},
+                "q" => {query_file(None); print!("{MAIN_MENU_TEXT}")},
+                "t" => todo!(),
+                "x" => return ExitCode::SUCCESS,
+                _ => println!("Unrecognised input")
+            }
         }
     }
 }
