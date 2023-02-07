@@ -5,8 +5,13 @@ use std::path::Path;
 
 mod scanner;
 mod parser;
-pub mod transpiler;
-pub mod communicator;
+mod transpiler;
+mod communicator;
+
+pub use communicator::{
+    start_prolog,
+    query_prolog
+};
 
 pub fn remove_path_prefix(s: &str) -> &str {
     if &s[..4] == r"\\?\" {

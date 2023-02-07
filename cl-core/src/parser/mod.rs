@@ -194,9 +194,13 @@ impl ast::Stmt {
     }
 
     fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Token, usize) {
-        while i < tokens.len() {
+        loop {
             if tokens[i].is_terminator() {break}
-            i += 1
+            if i < tokens.len() {
+                i += 1
+            } else {
+                break;
+            }
         }
     
         (tokens[i].clone(), i)

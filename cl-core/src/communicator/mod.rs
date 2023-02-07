@@ -1,5 +1,5 @@
 use swipl::prelude::*;
-use swipl_fli;
+//use swipl_fli;
 
 pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
     let activation = initialize_swipl().unwrap();
