@@ -15,33 +15,17 @@ pub struct Identifiers {
     highest_variable: u16
 }
 
-#[derive(Debug, PartialEq)]
-pub struct Query {
-    pub relationship: String,
-    pub left: String,
-    pub right: Option<String>
-}
-
-impl From<Vec<Identifier>> for Identifiers {
-    fn from(identifiers: Vec<Identifier>) -> Self {
-        let mut highest_literal = 0;
-        let mut highest_variable = 0;
-
-        for identifier in &identifiers {
-            match &identifier.pl_name.as_str()[0..1] {
-                "V" => highest_variable = identifier.pl_name[1..].parse::<u16>().unwrap(),
-                "l" => highest_literal = identifier.pl_name[1..].parse::<u16>().unwrap(),
-                &_ => {} // Unreachable
-            }
-        }
-
-        Self { identifiers, highest_literal, highest_variable }
-    }
-}
-
 impl Identifiers {
     fn new() -> Self {
-        Identifiers { identifiers: Vec::new(), highest_literal: 0, highest_variable: 0 }
+        let identifiers = vec![
+            Identifier {
+                cl_name: "eq".to_string(),
+                pl_name: "eq".to_string(),
+                article: None,
+                preposition: None
+            }
+        ];
+        Identifiers { identifiers, highest_literal: 0, highest_variable: 0 }
     }
 
     fn get_from_cl_name(&self, cl_name: String) -> Option<Identifier> {
@@ -95,6 +79,30 @@ impl Identifiers {
 
         result
     }
+}
+
+impl From<Vec<Identifier>> for Identifiers {
+    fn from(identifiers: Vec<Identifier>) -> Self {
+        let mut highest_literal = 0;
+        let mut highest_variable = 0;
+
+        for identifier in &identifiers {
+            match &identifier.pl_name.as_str()[0..1] {
+                "V" => highest_variable = identifier.pl_name[1..].parse::<u16>().unwrap(),
+                "l" => highest_literal = identifier.pl_name[1..].parse::<u16>().unwrap(),
+                &_ => {} // Unreachable
+            }
+        }
+
+        Self { identifiers, highest_literal, highest_variable }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Query {
+    pub relationship: String,
+    pub left: String,
+    pub right: Option<String>
 }
 
 fn is_lowercase(s: &str) -> bool {
