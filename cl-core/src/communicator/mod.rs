@@ -43,8 +43,10 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
             ).unwrap();
 
             let left = query.left;
-            term_l = term!{context: #left}?;
-            term_r = term!{context: #right}?;
+            //term_l = term!{context: #left}?;
+            term_l = context.term_from_string(&left)?;
+            //term_r = term!{context: #right}?;
+            term_r = context.term_from_string(&right)?;
             terms.push(&term_l);
             terms.push(&term_r);
 
