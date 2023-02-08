@@ -98,7 +98,7 @@ impl From<Vec<Identifier>> for Identifiers {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Query {
     pub relationship: String,
     pub left: String,

@@ -37,3 +37,9 @@ pub fn transpile(source: String) -> Result<(String, Vec<transpiler::Query>, tran
     //dbg!(&trees);
     Ok(transpiler::transpile(trees, None))
 }
+
+pub fn transpile_query(source: String) -> Result<transpiler::Query, parser::ParseError> {
+    let transpiled = transpile(source)?;
+
+    Ok(transpiled.1[0].clone())
+}

@@ -15,7 +15,7 @@ pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
     Ok(context)
 }
 
-pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler::Query) -> PrologResult<()> {
+pub fn query_prolog(context: &Context<ActivatedEngine>, query: crate::transpiler::Query) -> PrologResult<bool> {
     let mut terms = Vec::new();
     let term;
     let term_l;
@@ -77,5 +77,5 @@ pub fn query_prolog(context: Context<ActivatedEngine>, query: crate::transpiler:
 
     open_query.cut();
 
-    Ok(())
+    Ok(soln)
 }

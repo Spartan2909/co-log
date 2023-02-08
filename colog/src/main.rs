@@ -154,17 +154,34 @@ fn query_file(file_path: Option<String>) {
         Some(file) => file
     };
 
-    let colog = fs::read_to_string(file_to_query).unwrap();
+    let colog = fs::read_to_string(file_to_query)
+        .unwrap();
 
-    let pl = cl_core::transpile(colog).unwrap();
+    let pl = cl_core::transpile(colog)
+        .unwrap();
 
-    let mut tmp_location = env::current_exe().unwrap();
+    let mut tmp_location = env::current_exe()
+        .unwrap();
     tmp_location.pop();
     tmp_location.push("temp.pl");
 
-    fs::write(tmp_location.clone(), pl.0).unwrap();
+    fs::write(tmp_location.clone(), pl.0)
+        .unwrap();
 
-    let context = cl_core::start_prolog(tmp_location.to_str().unwrap()).unwrap();
+    let context = cl_core::start_prolog(tmp_location.to_str().unwrap())
+        .unwrap();
+
+    let mut input = get_user_input();
+    while &input != ":exit" {
+        let query = cl_core::transpile_query(input.clone())
+            .unwrap();
+
+        let succeeded = cl_core::query_prolog(&context, query);
+
+        dbg!(succeeded);
+
+        input = get_user_input();
+    }
 
     eprintln!("error: implementation not finished")
 }
