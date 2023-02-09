@@ -137,8 +137,7 @@ impl ast::Clause {
                 normalised.remove(2);
             }
 
-            let binary 
-                = type_between(&normalised, 0, next_term, TokenType::Prepostion, TokenType::FullStop);
+            let binary = type_between(&normalised, 0, next_term, TokenType::Prepostion, TokenType::FullStop);
 
             let mut left = ast::Identifier::try_from(normalised[0].clone())?;
             if articles[0].is_some() {
@@ -150,21 +149,21 @@ impl ast::Clause {
                 relationship.article = Some(articles[1].clone().unwrap().lexeme)
             }
 
-            let right;
-            if binary {
+            let right = if binary {
                 relationship.preposition = Some(normalised[3].lexeme.clone());
                 let mut right_tmp = ast::Identifier::try_from(normalised[4].clone())?;
                 if articles[2].is_some() {
                     right_tmp.article = Some(articles[2].clone().unwrap().lexeme)
                 }
-                right = Some(right_tmp);
+                Some(right_tmp)
             } else if relationship.kind == ast::IdenType::Variable {
                 // special case for `X is not? Y`
-                right = Some(relationship);
+                let right_tmp = relationship;
                 relationship = ast::Identifier { kind: ast::IdenType::Literal, article: None, lexeme: String::from("eq"), preposition: None };
+                Some(right_tmp)
             } else {
-                right = None;
-            }
+                None
+            };
 
             let clause = Self {
                 kind: ast::ClauseType::Simple, negated, op_type: None, left_clause: None, right_clause: None,
