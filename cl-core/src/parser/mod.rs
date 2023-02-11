@@ -261,7 +261,7 @@ impl ast::Stmt {
         // Rule
         if Self::contains(&tokens, i, TokenType::If) {
             stmt.kind = ast::StmtType::Rule;
-            let clause_start = Self::find_next(&tokens, 0, TokenType::If) + 1;
+            let clause_start = Self::find_next(&tokens, i, TokenType::If) + 1;
             stmt.condition = Some(ast::Clause::new(tokens, clause_start, stmt_end)?);
         }
 
