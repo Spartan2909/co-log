@@ -2,7 +2,22 @@ use swipl::prelude::*;
 //use swipl_fli;
 
 pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
-    let activation = initialize_swipl().unwrap();
+    let mut activation_attempts = 0_u8;
+    let activation = loop {
+        match initialize_swipl() {
+            None => {
+                if activation_attempts < 10 {
+                    activation_attempts += 1;
+                } else {
+                    panic!("failed to initialise Prolog");
+                }
+            },
+            Some(activation) => {
+                break activation
+            }
+        }
+    };
+    
     let context: Context<_> = activation.into();
 
     let consult = pred!(consult/1);
