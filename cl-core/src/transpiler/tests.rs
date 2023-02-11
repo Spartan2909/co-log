@@ -13,6 +13,12 @@ fn fact_unary() {
         Identifiers {
             identifiers: vec![
                 Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
+                Identifier {
                     cl_name: "mammal".to_string(),
                     pl_name: "l1".to_string(),
                     article: Some(
@@ -42,6 +48,12 @@ fn fact_binary() {
         vec![],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "brother".to_string(),
                     pl_name: "l1".to_string(),
@@ -78,6 +90,12 @@ fn rule_unary() {
         vec![],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "mammal".to_string(),
                     pl_name: "l1".to_string(),
@@ -120,6 +138,12 @@ fn rule_binary() {
         vec![],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "brother".to_string(),
                     pl_name: "l1".to_string(),
@@ -173,6 +197,12 @@ fn rule_binary_parentheses() {
         Identifiers {
             identifiers: vec![
                 Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
+                Identifier {
                     cl_name: "thing".to_string(),
                     pl_name: "l1".to_string(),
                     article: None,
@@ -214,10 +244,16 @@ fn rule_binary_parentheses() {
 #[test]
 fn rule_binary_negation() {
     assert_eq!(transpile("X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y."), (
-        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(V1, V2) :- (l2(V3, V1), (l2(V3, V2), \\+l3(V1, V2))).\n".to_string(),
+        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(V1, V2) :- (l2(V3, V1), (l2(V3, V2), \\+eq(V1, V2))).\n".to_string(),
         vec![],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "sibling".to_string(),
                     pl_name: "l1".to_string(),
@@ -256,14 +292,8 @@ fn rule_binary_negation() {
                     article: None,
                     preposition: None,
                 },
-                Identifier {
-                    cl_name: "eq".to_string(),
-                    pl_name: "l3".to_string(),
-                    article: None,
-                    preposition: None,
-                },
             ],
-            highest_literal: 3,
+            highest_literal: 2,
             highest_variable: 3,
         },
     ))
@@ -282,6 +312,12 @@ fn query_literal() {
         ],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "mammal".to_string(),
                     pl_name: "l1".to_string(),
@@ -320,6 +356,12 @@ fn query_literal_literal() {
         ],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "brother".to_string(),
                     pl_name: "l1".to_string(),
@@ -365,6 +407,12 @@ fn query_literal_pronoun() {
         Identifiers {
             identifiers: vec![
                 Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
+                Identifier {
                     cl_name: "brother".to_string(),
                     pl_name: "l1".to_string(),
                     article: Some(
@@ -409,6 +457,12 @@ fn query_pronoun_literal() {
         Identifiers {
             identifiers: vec![
                 Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
+                Identifier {
                     cl_name: "brother".to_string(),
                     pl_name: "l1".to_string(),
                     article: Some(
@@ -452,6 +506,12 @@ fn query_pronoun_pronoun() {
         ],
         Identifiers {
             identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None
+                },
                 Identifier {
                     cl_name: "sister".to_string(),
                     pl_name: "l1".to_string(),
