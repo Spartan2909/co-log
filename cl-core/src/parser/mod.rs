@@ -108,17 +108,16 @@ impl ast::Clause {
         let (collapsed, articles) = collapse_articles(&tokens, i);
         if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
             let operator = tokens[op_index].clone();
-            let left_clause = Some(Box::new(Self::new(tokens.clone(), i, op_index)?));
-            let right_clause = Some(Box::new(Self::new(tokens.clone(), op_index + 1, next_term)?));
+            let left = Box::new(Self::new(tokens.clone(), i, op_index)?);
+            let right = Box::new(Self::new(tokens.clone(), op_index + 1, next_term)?);
 
-            let op_type = Some(if operator.lexeme.to_lowercase() == "and" {
+            let op_type = if operator.lexeme.to_lowercase() == "and" {
                 ast::OperatorType::And
             } else {
                 ast::OperatorType::Or
-            });
+            };
 
-            return Ok(Self { kind: ast::ClauseType::Operator, negated: false, op_type, left_clause,
-                right_clause, left_iden: None, relationship: None, right_iden: None })
+            return Ok(Self::Operator { op_type, left, right })
         }
 
         if collapsed[0].kind == TokenType::LeftParen {
@@ -132,7 +131,7 @@ impl ast::Clause {
 
         if collapsed[0].is_identifier() {
             let negated = collapsed[2].kind == TokenType::Not;
-            let mut normalised: Vec<scanner::Token> = collapsed.clone();
+            let mut normalised: Vec<scanner::Token> = collapsed;
             if negated {
                 normalised.remove(2);
             }
@@ -165,10 +164,7 @@ impl ast::Clause {
                 None
             };
 
-            let clause = Self {
-                kind: ast::ClauseType::Simple, negated, op_type: None, left_clause: None, right_clause: None,
-                left_iden: Some(left), relationship: Some(relationship), right_iden: right
-            };
+            let clause = Self::Simple { negated, left, relationship: relationship, right };
 
             return Ok(clause)
         }

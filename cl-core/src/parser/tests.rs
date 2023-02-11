@@ -4,12 +4,11 @@ use super::{
         *,
         StmtType::*,
         IdenType::*,
-        ClauseType::*,
         OperatorType::*
     }
 };
 use crate::scanner::scan;
-use std::{collections::HashSet};
+use std::collections::HashSet;
 
 fn test_trees_equal(left: &str, right: HashSet<ast::Stmt>) {
     let left_tmp = parse(scan(String::from(left))).unwrap();
@@ -39,7 +38,7 @@ fn fact_unary() {
             },
             right: None,
             condition: None,
-        },
+        }
     ]))
 }
 
@@ -98,69 +97,42 @@ fn rule_unary() {
             },
             right: None,
             condition: Some(
-                Clause {
-                    kind: Operator,
-                    negated: false,
-                    op_type: Some(
-                        And,
-                    ),
-                    left_clause: Some(
-                        Box::new(Clause {
-                            kind: Simple,
-                            negated: false,
-                            op_type: None,
-                            left_clause: None,
-                            right_clause: None,
-                            left_iden: Some(
-                                Identifier {
-                                    kind: Variable,
-                                    lexeme: "X".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
+                Clause::Operator {
+                    op_type: And,
+                    left: Box::new(Clause::Simple {
+                        negated: false,
+                        left: Identifier {
+                            kind: Variable,
+                            lexeme: "X".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        relationship: Identifier {
+                            kind: Literal,
+                            lexeme: "animal".to_string(),
+                            article: Some(
+                                "an".to_string(),
                             ),
-                            relationship: Some(
-                                Identifier {
-                                    kind: Literal,
-                                    lexeme: "animal".to_string(),
-                                    article: Some(
-                                        "an".to_string(),
-                                    ),
-                                    preposition: None,
-                                },
-                            ),
-                            right_iden: None,
-                        }),
-                    ),
-                    right_clause: Some(
-                        Box::new(Clause {
-                            kind: Simple,
-                            negated: false,
-                            op_type: None,
-                            left_clause: None,
-                            right_clause: None,
-                            left_iden: Some(
-                                Identifier {
-                                    kind: Variable,
-                                    lexeme: "X".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
-                            ),
-                            relationship: Some(
-                                Identifier {
-                                    kind: Literal,
-                                    lexeme: "warm-blooded".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
-                            ),
-                            right_iden: None,
-                        }),
-                    ),
-                    left_iden: None,
-                    relationship: None,
-                    right_iden: None,
+                            preposition: None,
+                        },
+                        right: None,
+                    }),
+                    right: Box::new(Clause::Simple {
+                        negated: false,
+                        left: Identifier {
+                            kind: Variable,
+                            lexeme: "X".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        relationship: Identifier {
+                            kind: Literal,
+                            lexeme: "warm-blooded".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        right: None,
+                    }),
                 },
             ),
         },
@@ -197,78 +169,51 @@ fn rule_binary() {
                 },
             ),
             condition: Some(
-                Clause {
-                    kind: Operator,
-                    negated: false,
-                    op_type: Some(
-                        And,
-                    ),
-                    left_clause: Some(
-                        Box::new(Clause {
-                            kind: Simple,
-                            negated: false,
-                            op_type: None,
-                            left_clause: None,
-                            right_clause: None,
-                            left_iden: Some(
-                                Identifier {
-                                    kind: Variable,
-                                    lexeme: "X".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
+                Clause::Operator {
+                    op_type: And,
+                    left: Box::new(Clause::Simple {
+                        negated: false,
+                        left: Identifier {
+                            kind: Variable,
+                            lexeme: "X".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        relationship: Identifier {
+                            kind: Literal,
+                            lexeme: "sibling".to_string(),
+                            article: Some(
+                                "the".to_string(),
                             ),
-                            relationship: Some(
-                                Identifier {
-                                    kind: Literal,
-                                    lexeme: "sibling".to_string(),
-                                    article: Some(
-                                        "the".to_string(),
-                                    ),
-                                    preposition: Some(
-                                        "of".to_string(),
-                                    ),
-                                },
+                            preposition: Some(
+                                "of".to_string(),
                             ),
-                            right_iden: Some(
-                                Identifier {
-                                    kind: Variable,
-                                    lexeme: "Y".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
-                            ),
-                        }),
-                    ),
-                    right_clause: Some(
-                        Box::new(Clause {
-                            kind: Simple,
-                            negated: false,
-                            op_type: None,
-                            left_clause: None,
-                            right_clause: None,
-                            left_iden: Some(
-                                Identifier {
-                                    kind: Variable,
-                                    lexeme: "X".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
-                            ),
-                            relationship: Some(
-                                Identifier {
-                                    kind: Literal,
-                                    lexeme: "male".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
-                            ),
-                            right_iden: None,
-                        }),
-                    ),
-                    left_iden: None,
-                    relationship: None,
-                    right_iden: None,
+                        },
+                        right: Some(
+                            Identifier {
+                                kind: Variable,
+                                lexeme: "Y".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                        ),
+                    }),
+                    right: Box::new(Clause::Simple {
+                        negated: false,
+                        left: Identifier {
+                            kind: Variable,
+                            lexeme: "X".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        relationship: Identifier {
+                            kind: Literal,
+                            lexeme: "male".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        right: None,
+                    }),
                 },
             ),
         },
@@ -303,143 +248,78 @@ fn rule_binary_parentheses() {
                 },
             ),
             condition: Some(
-                Clause {
-                    kind: Operator,
-                    negated: false,
-                    op_type: Some(
-                        Or,
-                    ),
-                    left_clause: Some(
-                        Box::new(Clause {
-                            kind: Operator,
+                Clause::Operator {
+                    op_type: Or,
+                    left: Box::new(Clause::Operator {
+                        op_type: And,
+                        left: Box::new(Clause::Simple {
                             negated: false,
-                            op_type: Some(
-                                And,
-                            ),
-                            left_clause: Some(
-                                Box::new(Clause {
-                                    kind: Simple,
-                                    negated: false,
-                                    op_type: None,
-                                    left_clause: None,
-                                    right_clause: None,
-                                    left_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "B".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    relationship: Some(
-                                        Identifier {
-                                            kind: Literal,
-                                            lexeme: "one".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    right_iden: None,
-                                }),
-                            ),
-                            right_clause: Some(
-                                Box::new(Clause {
-                                    kind: Simple,
-                                    negated: false,
-                                    op_type: None,
-                                    left_clause: None,
-                                    right_clause: None,
-                                    left_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "C".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    relationship: Some(
-                                        Identifier {
-                                            kind: Literal,
-                                            lexeme: "one".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    right_iden: None,
-                                }),
-                            ),
-                            left_iden: None,
-                            relationship: None,
-                            right_iden: None,
+                            left: Identifier {
+                                kind: Variable,
+                                lexeme: "B".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            relationship: Identifier {
+                                kind: Literal,
+                                lexeme: "one".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            right: None,
                         }),
-                    ),
-                    right_clause: Some(
-                        Box::new(Clause {
-                            kind: Operator,
+                        right: Box::new(Clause::Simple {
                             negated: false,
-                            op_type: Some(
-                                And,
-                            ),
-                            left_clause: Some(
-                                Box::new(Clause {
-                                    kind: Simple,
-                                    negated: false,
-                                    op_type: None,
-                                    left_clause: None,
-                                    right_clause: None,
-                                    left_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "B".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    relationship: Some(
-                                        Identifier {
-                                            kind: Literal,
-                                            lexeme: "two".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    right_iden: None,
-                                }),
-                            ),
-                            right_clause: Some(
-                                Box::new(Clause {
-                                    kind: Simple,
-                                    negated: false,
-                                    op_type: None,
-                                    left_clause: None,
-                                    right_clause: None,
-                                    left_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "C".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    relationship: Some(
-                                        Identifier {
-                                            kind: Literal,
-                                            lexeme: "two".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    right_iden: None,
-                                }),
-                            ),
-                            left_iden: None,
-                            relationship: None,
-                            right_iden: None,
+                            left: Identifier {
+                                kind: Variable,
+                                lexeme: "C".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            relationship: Identifier {
+                                kind: Literal,
+                                lexeme: "one".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            right: None,
                         }),
-                    ),
-                    left_iden: None,
-                    relationship: None,
-                    right_iden: None,
+                    }),
+                    right: Box::new(Clause::Operator {
+                        op_type: And,
+                        left: Box::new(Clause::Simple {
+                            negated: false,
+                            left: Identifier {
+                                kind: Variable,
+                                lexeme: "B".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            relationship: Identifier {
+                                kind: Literal,
+                                lexeme: "two".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            right: None,
+                        }),
+                        right: Box::new(Clause::Simple {
+                            negated: false,
+                            left: Identifier {
+                                kind: Variable,
+                                lexeme: "C".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            relationship: Identifier {
+                                kind: Literal,
+                                lexeme: "two".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            right: None,
+                        }),
+                    }),
                 },
             ),
         },
@@ -476,134 +356,88 @@ fn rule_binary_negation() {
                 },
             ),
             condition: Some(
-                Clause {
-                    kind: Operator,
-                    negated: false,
-                    op_type: Some(
-                        And,
-                    ),
-                    left_clause: Some(
-                        Box::new(Clause {
-                            kind: Simple,
+                Clause::Operator {
+                    op_type: And,
+                    left: Box::new(Clause::Simple {
+                        negated: false,
+                        left: Identifier {
+                            kind: Variable,
+                            lexeme: "Z".to_string(),
+                            article: None,
+                            preposition: None,
+                        },
+                        relationship: Identifier {
+                            kind: Literal,
+                            lexeme: "parent".to_string(),
+                            article: Some(
+                                "the".to_string(),
+                            ),
+                            preposition: Some(
+                                "of".to_string(),
+                            ),
+                        },
+                        right: Some(
+                            Identifier {
+                                kind: Variable,
+                                lexeme: "X".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                        ),
+                    }),
+                    right: Box::new(Clause::Operator {
+                        op_type: And,
+                        left: Box::new(Clause::Simple {
                             negated: false,
-                            op_type: None,
-                            left_clause: None,
-                            right_clause: None,
-                            left_iden: Some(
+                            left: Identifier {
+                                kind: Variable,
+                                lexeme: "Z".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            relationship: Identifier {
+                                kind: Literal,
+                                lexeme: "parent".to_string(),
+                                article: Some(
+                                    "the".to_string(),
+                                ),
+                                preposition: Some(
+                                    "of".to_string(),
+                                ),
+                            },
+                            right: Some(
                                 Identifier {
                                     kind: Variable,
-                                    lexeme: "Z".to_string(),
-                                    article: None,
-                                    preposition: None,
-                                },
-                            ),
-                            relationship: Some(
-                                Identifier {
-                                    kind: Literal,
-                                    lexeme: "parent".to_string(),
-                                    article: Some(
-                                        "the".to_string(),
-                                    ),
-                                    preposition: Some(
-                                        "of".to_string(),
-                                    ),
-                                },
-                            ),
-                            right_iden: Some(
-                                Identifier {
-                                    kind: Variable,
-                                    lexeme: "X".to_string(),
+                                    lexeme: "Y".to_string(),
                                     article: None,
                                     preposition: None,
                                 },
                             ),
                         }),
-                    ),
-                    right_clause: Some(
-                        Box::new(Clause {
-                            kind: Operator,
-                            negated: false,
-                            op_type: Some(
-                                And,
+                        right: Box::new(Clause::Simple {
+                            negated: true,
+                            left: Identifier {
+                                kind: Variable,
+                                lexeme: "X".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            relationship: Identifier {
+                                kind: Literal,
+                                lexeme: "eq".to_string(),
+                                article: None,
+                                preposition: None,
+                            },
+                            right: Some(
+                                Identifier {
+                                    kind: Variable,
+                                    lexeme: "Y".to_string(),
+                                    article: None,
+                                    preposition: None,
+                                },
                             ),
-                            left_clause: Some(
-                                Box::new(Clause {
-                                    kind: Simple,
-                                    negated: false,
-                                    op_type: None,
-                                    left_clause: None,
-                                    right_clause: None,
-                                    left_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "Z".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    relationship: Some(
-                                        Identifier {
-                                            kind: Literal,
-                                            lexeme: "parent".to_string(),
-                                            article: Some(
-                                                "the".to_string(),
-                                            ),
-                                            preposition: Some(
-                                                "of".to_string(),
-                                            ),
-                                        },
-                                    ),
-                                    right_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "Y".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                }),
-                            ),
-                            right_clause: Some(
-                                Box::new(Clause {
-                                    kind: Simple,
-                                    negated: true,
-                                    op_type: None,
-                                    left_clause: None,
-                                    right_clause: None,
-                                    left_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "X".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    relationship: Some(
-                                        Identifier {
-                                            kind: Literal,
-                                            lexeme: "eq".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                    right_iden: Some(
-                                        Identifier {
-                                            kind: Variable,
-                                            lexeme: "Y".to_string(),
-                                            article: None,
-                                            preposition: None,
-                                        },
-                                    ),
-                                }),
-                            ),
-                            left_iden: None,
-                            relationship: None,
-                            right_iden: None,
                         }),
-                    ),
-                    left_iden: None,
-                    relationship: None,
-                    right_iden: None,
+                    }),
                 },
             ),
         },

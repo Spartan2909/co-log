@@ -33,20 +33,21 @@ impl TryFrom<scanner::Token> for Identifier {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub enum ClauseType { Simple, Operator }
-#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum OperatorType { And, Or }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Clause {
-    pub kind: ClauseType,
-    pub negated: bool,
-    pub op_type: Option<OperatorType>,
-    pub left_clause: Option<Box<Clause>>,
-    pub right_clause: Option<Box<Clause>>,
-    pub left_iden: Option<Identifier>,
-    pub relationship: Option<Identifier>,
-    pub right_iden: Option<Identifier>
+pub enum Clause {
+    Simple {
+        negated: bool,
+        left: Identifier,
+        relationship: Identifier,
+        right: Option<Identifier>
+    },
+    Operator {
+        op_type: OperatorType,
+        left: Box<Clause>,
+        right: Box<Clause>
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]

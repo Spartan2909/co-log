@@ -111,31 +111,33 @@ fn is_lowercase(s: &str) -> bool {
 
 fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (String, Identifiers) {
     let mut output = String::new();
-    if clause.negated {
-        output += r"\+"
-    }
 
-    if clause.kind == ast::ClauseType::Operator {
-        let left;
-        let right;
-        (left, identifiers) = transpile_clause(*clause.left_clause.unwrap(), identifiers);
-        (right, identifiers) = transpile_clause(*clause.right_clause.unwrap(), identifiers);
+    match clause {
+        ast::Clause::Operator { op_type, left, right } => {
+            let (left, identifiers) = transpile_clause(*left, identifiers);
+            let (right, identifiers) = transpile_clause(*right, identifiers);
 
-        output = match clause.op_type.unwrap() {
-            ast::OperatorType::And => format!("({left}, {right})"),
-            ast::OperatorType::Or => format!("({left}; {right})")
-        };
+            output = match op_type {
+                ast::OperatorType::And => format!("({left}, {right})"),
+                ast::OperatorType::Or => format!("({left}; {right})")
+            };
 
-        (output, identifiers)
-    } else {
-        output += &format!("{}(", identifiers.get_or_create(clause.relationship.unwrap()));
-        output += &identifiers.get_or_create(clause.left_iden.unwrap());
-        if let Some(right) = clause.right_iden {
-            output += &format!(", {}", identifiers.get_or_create(right))
+            (output, identifiers)
+        },
+        ast::Clause::Simple { negated, left, relationship, right } => {
+            if negated {
+                output += r"\+"
+            }
+
+            output += &format!("{}(", identifiers.get_or_create(relationship));
+            output += &identifiers.get_or_create(left);
+            if let Some(right) = right {
+                output += &format!(", {}", identifiers.get_or_create(right))
+            }
+            output += ")";
+
+            (output, identifiers)
         }
-        output += ")";
-
-        (output, identifiers)
     }
 }
 
