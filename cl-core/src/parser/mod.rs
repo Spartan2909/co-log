@@ -101,172 +101,168 @@ fn type_between(tokens: &Vec<scanner::Token>, start: usize, end: usize, kind: To
     false
 }
 
-impl ast::Clause {
-    fn new(tokens: Vec<scanner::Token>, i: usize, next_term: usize) -> Result<Self, ParseError> {
-        //dbg!(tokens[i].start);
-        //dbg!(&tokens[i..next_term]);
-        let (collapsed, articles) = collapse_articles(&tokens, i);
-        if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
-            let operator = tokens[op_index].clone();
-            let left = Box::new(Self::new(tokens.clone(), i, op_index)?);
-            let right = Box::new(Self::new(tokens.clone(), op_index + 1, next_term)?);
+fn parse_clause(tokens: Vec<scanner::Token>, i: usize, next_term: usize) -> Result<ast::Clause, ParseError> {
+    //dbg!(tokens[i].start);
+    //dbg!(&tokens[i..next_term]);
+    let (collapsed, articles) = collapse_articles(&tokens, i);
+    if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
+        let operator = tokens[op_index].clone();
+        let left = Box::new(parse_clause(tokens.clone(), i, op_index)?);
+        let right = Box::new(parse_clause(tokens.clone(), op_index + 1, next_term)?);
 
-            let op_type = if operator.lexeme.to_lowercase() == "and" {
-                ast::OperatorType::And
-            } else {
-                ast::OperatorType::Or
-            };
+        let op_type = if operator.lexeme.to_lowercase() == "and" {
+            ast::OperatorType::And
+        } else {
+            ast::OperatorType::Or
+        };
 
-            return Ok(Self::Operator { op_type, left, right })
-        }
-
-        if collapsed[0].kind == TokenType::LeftParen {
-            let close_paren = find_close(&tokens, i, next_term);
-
-            match close_paren {
-                Ok(close) => return Self::new(tokens, i + 1, close),
-                Err(terminator) => return Err(ParseError::new(collapsed[terminator].clone(),  TokenType::RightParen))
-            }
-        }
-
-        if collapsed[0].is_identifier() {
-            let negated = collapsed[2].kind == TokenType::Not;
-            let mut normalised: Vec<scanner::Token> = collapsed;
-            if negated {
-                normalised.remove(2);
-            }
-
-            let binary = type_between(&normalised, 0, next_term, TokenType::Prepostion, TokenType::FullStop);
-
-            let mut left = ast::Identifier::try_from(normalised[0].clone())?;
-            if articles[0].is_some() {
-                left.article = Some(articles[0].clone().unwrap().lexeme)
-            }
-
-            let mut relationship = ast::Identifier::try_from(normalised[2].clone())?;
-            if articles[1].is_some() {
-                relationship.article = Some(articles[1].clone().unwrap().lexeme)
-            }
-
-            let right = if binary {
-                relationship.preposition = Some(normalised[3].lexeme.clone());
-                let mut right_tmp = ast::Identifier::try_from(normalised[4].clone())?;
-                if articles[2].is_some() {
-                    right_tmp.article = Some(articles[2].clone().unwrap().lexeme)
-                }
-                Some(right_tmp)
-            } else if relationship.kind == ast::IdenType::Variable {
-                // special case for `X is not? Y`
-                let right_tmp = relationship;
-                relationship = ast::Identifier { kind: ast::IdenType::Literal, article: None, lexeme: String::from("eq"), preposition: None };
-                Some(right_tmp)
-            } else {
-                None
-            };
-
-            let clause = Self::Simple { negated, left, relationship: relationship, right };
-
-            return Ok(clause)
-        }
-
-        Err(ParseError { token: collapsed[i].clone(), expected: Vec::from(
-            [TokenType::LeftParen, TokenType::Article, TokenType::Literal, TokenType::Variable]
-        ) })
+        return Ok(ast::Clause::Operator { op_type, left, right })
     }
+
+    if collapsed[0].kind == TokenType::LeftParen {
+        let close_paren = find_close(&tokens, i, next_term);
+
+        match close_paren {
+            Ok(close) => return parse_clause(tokens, i + 1, close),
+            Err(terminator) => return Err(ParseError::new(collapsed[terminator].clone(),  TokenType::RightParen))
+        }
+    }
+
+    if collapsed[0].is_identifier() {
+        let negated = collapsed[2].kind == TokenType::Not;
+        let mut normalised: Vec<scanner::Token> = collapsed;
+        if negated {
+            normalised.remove(2);
+        }
+
+        let binary = type_between(&normalised, 0, next_term, TokenType::Prepostion, TokenType::FullStop);
+
+        let mut left = ast::Identifier::try_from(normalised[0].clone())?;
+        if articles[0].is_some() {
+            left.article = Some(articles[0].clone().unwrap().lexeme)
+        }
+
+        let mut relationship = ast::Identifier::try_from(normalised[2].clone())?;
+        if articles[1].is_some() {
+            relationship.article = Some(articles[1].clone().unwrap().lexeme)
+        }
+
+        let right = if binary {
+            relationship.preposition = Some(normalised[3].lexeme.clone());
+            let mut right_tmp = ast::Identifier::try_from(normalised[4].clone())?;
+            if articles[2].is_some() {
+                right_tmp.article = Some(articles[2].clone().unwrap().lexeme)
+            }
+            Some(right_tmp)
+        } else if relationship.kind == ast::IdenType::Variable {
+            // special case for `X is not? Y`
+            let right_tmp = relationship;
+            relationship = ast::Identifier { kind: ast::IdenType::Literal, article: None, lexeme: String::from("eq"), preposition: None };
+            Some(right_tmp)
+        } else {
+            None
+        };
+
+        let clause = ast::Clause::Simple { negated, left, relationship: relationship, right };
+
+        return Ok(clause)
+    }
+
+    Err(ParseError { token: collapsed[i].clone(), expected: Vec::from(
+        [TokenType::LeftParen, TokenType::Article, TokenType::Literal, TokenType::Variable]
+    ) })
 }
 
-impl ast::Stmt {
-    fn contains(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> bool {
-        while i < tokens.len() {
-            if tokens[i].is_terminator() {break}
-    
-            if tokens[i].kind == kind {return true}
+fn tokens_contain(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> bool {
+    while i < tokens.len() {
+        if tokens[i].is_terminator() {break}
 
+        if tokens[i].kind == kind {return true}
+
+        i += 1
+    }
+
+    false
+}
+
+fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Token, usize) {
+    loop {
+        if tokens[i].is_terminator() {break}
+        if i < tokens.len() {
             i += 1
+        } else {
+            break;
         }
-    
-        false
     }
 
-    fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Token, usize) {
-        loop {
-            if tokens[i].is_terminator() {break}
-            if i < tokens.len() {
-                i += 1
-            } else {
-                break;
-            }
-        }
-    
-        (tokens[i].clone(), i)
+    (tokens[i].clone(), i)
+}
+
+fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usize {
+    while i < tokens.len() {
+        if tokens[i].kind == kind {break}
+        i += 1
     }
 
-    fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usize {
-        while i < tokens.len() {
-            if tokens[i].kind == kind {break}
-            i += 1
-        }
+    i
+}
 
-        i
+fn parse_stmt(tokens: Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize), ParseError> {
+    let (_, stmt_end) = next_terminator(&tokens, i);
+
+    let mut binary = type_between(&tokens, i, tokens.len(), TokenType::Prepostion, TokenType::If);
+    let (collapsed, articles) = collapse_articles(&tokens, i);
+    let mut left_index = 0;
+    let rel_index = 2;
+    let right_index = 4;
+    let mut kind = ast::StmtType::Fact;
+
+    let (next_term, _) = next_terminator(&collapsed, 0);
+    if next_term.kind == TokenType::QuestionMark {
+        match collapsed[0].kind {
+            TokenType::Verb => {
+                binary = collapsed.len() == 6;
+                left_index = 1;
+                kind = ast::StmtType::Query;
+            },
+            TokenType::Literal | TokenType::Pronoun => {
+                binary = true;
+                kind = ast::StmtType::Query;
+            },
+            _ => {}
+        }
     }
 
-    fn new(tokens: Vec<scanner::Token>, i: usize) -> Result<(Self, usize), ParseError> {
-        let (_, stmt_end) = Self::next_terminator(&tokens, i);
-
-        let mut binary = type_between(&tokens, i, tokens.len(), TokenType::Prepostion, TokenType::If);
-        let (collapsed, articles) = collapse_articles(&tokens, i);
-        let mut left_index = 0;
-        let rel_index = 2;
-        let right_index = 4;
-        let mut kind = ast::StmtType::Fact;
-
-        let (next_term, _) = Self::next_terminator(&collapsed, 0);
-        if next_term.kind == TokenType::QuestionMark {
-            match collapsed[0].kind {
-                TokenType::Verb => {
-                    binary = collapsed.len() == 6;
-                    left_index = 1;
-                    kind = ast::StmtType::Query;
-                },
-                TokenType::Literal | TokenType::Pronoun => {
-                    binary = true;
-                    kind = ast::StmtType::Query;
-                },
-                _ => {}
-            }
-        }
-
-        let mut left = ast::Identifier::try_from(collapsed[left_index].clone())?;
-        if let Some(tmp) = articles[0].clone() {
-            left.article = Some(tmp.lexeme);
-        }
-
-        let mut relationship = ast::Identifier::try_from(collapsed[rel_index].clone())?;
-        if let Some(tmp) = articles[1].clone() {
-            relationship.article = Some(tmp.lexeme);
-        }
-
-        let mut stmt = Self { kind, left, relationship, right: None, condition: None };
-
-        if binary {
-            let preposition = collapsed[3].lexeme.clone();
-            stmt.relationship.preposition = Some(preposition);
-            let mut right = ast::Identifier::try_from(collapsed[right_index].clone())?;
-            if let Some(tmp) = articles[2].clone() {
-                right.article = Some(tmp.lexeme)
-            }
-            stmt.right = Some(right)
-        }
-
-        // Rule
-        if Self::contains(&tokens, i, TokenType::If) {
-            stmt.kind = ast::StmtType::Rule;
-            let clause_start = Self::find_next(&tokens, i, TokenType::If) + 1;
-            stmt.condition = Some(ast::Clause::new(tokens, clause_start, stmt_end)?);
-        }
-
-        Ok((stmt, stmt_end))
+    let mut left = ast::Identifier::try_from(collapsed[left_index].clone())?;
+    if let Some(tmp) = articles[0].clone() {
+        left.article = Some(tmp.lexeme);
     }
+
+    let mut relationship = ast::Identifier::try_from(collapsed[rel_index].clone())?;
+    if let Some(tmp) = articles[1].clone() {
+        relationship.article = Some(tmp.lexeme);
+    }
+
+    let mut stmt = ast::Stmt { kind, left, relationship, right: None, condition: None };
+
+    if binary {
+        let preposition = collapsed[3].lexeme.clone();
+        stmt.relationship.preposition = Some(preposition);
+        let mut right = ast::Identifier::try_from(collapsed[right_index].clone())?;
+        if let Some(tmp) = articles[2].clone() {
+            right.article = Some(tmp.lexeme)
+        }
+        stmt.right = Some(right)
+    }
+
+    // Rule
+    if tokens_contain(&tokens, i, TokenType::If) {
+        stmt.kind = ast::StmtType::Rule;
+        let clause_start = find_next(&tokens, i, TokenType::If) + 1;
+        stmt.condition = Some(parse_clause(tokens, clause_start, stmt_end)?);
+    }
+
+    Ok((stmt, stmt_end))
 }
 
 pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> {
@@ -278,7 +274,7 @@ pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> 
         match tokens[i].kind {
             EOF => break,
             Article | Literal | Variable | Pronoun | Verb => {
-                let (tree, end) = ast::Stmt::new(tokens.clone(), i)?;
+                let (tree, end) = parse_stmt(tokens.clone(), i)?;
                 //dbg!(&tree);
                 trees.push(tree);
                 i = end + 1
