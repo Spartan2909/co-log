@@ -6,10 +6,10 @@ pub enum IdenType { Literal, Variable, Pronoun }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Identifier {
-    pub kind: IdenType,
-    pub lexeme: String,
-    pub article: Option<String>,
-    pub preposition: Option<String>
+    pub(crate) kind: IdenType,
+    pub(crate) lexeme: String,
+    pub(crate) article: Option<String>,
+    pub(crate) preposition: Option<String>
 }
 
 impl TryFrom<scanner::Token> for Identifier {
@@ -55,9 +55,9 @@ pub enum StmtType { Fact, Rule, Query }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Stmt {
-    pub kind: StmtType,
-    pub left: Identifier,
-    pub relationship: Identifier,
-    pub right: Option<Identifier>,
-    pub condition: Option<Clause>
+    pub(crate) kind: StmtType,
+    pub(crate) left: Identifier,
+    pub(crate) relationship: Identifier,
+    pub(crate) right: Option<Identifier>,
+    pub(crate) condition: Option<Clause>
 }
