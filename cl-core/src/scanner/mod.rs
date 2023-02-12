@@ -3,15 +3,25 @@ use self::TokenType::*;
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum TokenType {
     // Single character tokens
-    FullStop, QuestionMark, LeftParen, RightParen,
+    FullStop,
+    QuestionMark,
+    LeftParen,
+    RightParen,
 
     // Reserved words
-    Article, Operator, Prepostion, Verb, If, Pronoun, Not,
-    
-    // Identifiers
-    Literal, Variable,
+    Article,
+    Operator,
+    Prepostion,
+    Verb,
+    If,
+    Pronoun,
+    Not,
 
-    EOF
+    // Identifiers
+    Literal,
+    Variable,
+
+    EOF,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -24,7 +34,12 @@ pub struct Token {
 
 impl Token {
     fn new(kind: TokenType, lexeme: &str, start: usize, length: usize) -> Self {
-        Token { kind, lexeme: String::from(lexeme), start, length }
+        Token {
+            kind,
+            lexeme: String::from(lexeme),
+            start,
+            length,
+        }
     }
 
     pub fn is_terminator(&self) -> bool {
@@ -50,7 +65,7 @@ fn get_word(source: &str, start: usize) -> String {
 }
 
 fn find_newline(source: String, mut i: usize) -> usize {
-    while &source[i..i+1] != "\n" {
+    while &source[i..i + 1] != "\n" {
         i += 1
     }
 
@@ -64,12 +79,18 @@ pub fn scan(source: String) -> Vec<Token> {
     while i < source.len() {
         let c = source.chars().nth(i).unwrap();
         match c {
-            c if c.is_whitespace() => {i += 1; continue},
+            c if c.is_whitespace() => {
+                i += 1;
+                continue;
+            }
             '(' => tokens.push(Token::new(LeftParen, "(", i, 1)),
             ')' => tokens.push(Token::new(RightParen, ")", i, 1)),
             '.' => tokens.push(Token::new(FullStop, ".", i, 1)),
             '?' => tokens.push(Token::new(QuestionMark, "?", i, 1)),
-            '#' => {i = find_newline(source.clone(), i); continue},
+            '#' => {
+                i = find_newline(source.clone(), i);
+                continue;
+            }
             c if c.is_alphabetic() => {
                 let lexeme = get_word(&source, i);
                 let length = lexeme.len();
@@ -82,7 +103,7 @@ pub fn scan(source: String) -> Vec<Token> {
                     "who" | "what" => Pronoun,
                     "not" => Not,
                     _ => {
-                        if lexeme.chars().nth(length-1).unwrap().is_lowercase() {
+                        if lexeme.chars().nth(length - 1).unwrap().is_lowercase() {
                             Literal
                         } else {
                             Variable
@@ -92,8 +113,8 @@ pub fn scan(source: String) -> Vec<Token> {
                 tokens.push(Token::new(kind, &lexeme, i, length));
 
                 i += length;
-                continue
-            },
+                continue;
+            }
             _ => todo!("unrecognised character"),
         }
 

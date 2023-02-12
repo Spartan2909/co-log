@@ -1,16 +1,12 @@
 use cl_core;
-use std::{
-    env,
-    fs,
-    process::ExitCode,
-    io::{
-        self,
-        BufRead
-    }
-};
+use clap::Parser;
 use directories::ProjectDirs;
 use scrawl;
-use clap::Parser;
+use std::{
+    env, fs,
+    io::{self, BufRead},
+    process::ExitCode,
+};
 
 mod text;
 use text::*;
@@ -19,11 +15,17 @@ use text::*;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// The file to query
-    file: Option<String>
+    file: Option<String>,
 }
 
 fn get_user_input() -> String {
-    std::io::stdin().lock().lines().nth(0).unwrap().unwrap().to_lowercase()
+    std::io::stdin()
+        .lock()
+        .lines()
+        .nth(0)
+        .unwrap()
+        .unwrap()
+        .to_lowercase()
 }
 
 fn create_file(file_name: Option<String>) -> io::Result<()> {
@@ -41,7 +43,10 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
 
     match file_name {
         None => {
-            let mut user_files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
+            let mut user_files = fs::read_dir(cl_core::remove_path_prefix(
+                user_file_folder.to_str().unwrap(),
+            ))
+            .unwrap();
 
             let mut valid = false;
             while !valid {
@@ -49,9 +54,10 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
 
                 chosen_file = get_user_input();
 
-                if user_files.any(
-                    |f| f.unwrap().path().file_name().unwrap().to_str() == Some(&(chosen_file.clone() + ".cl"))
-                ) {
+                if user_files.any(|f| {
+                    f.unwrap().path().file_name().unwrap().to_str()
+                        == Some(&(chosen_file.clone() + ".cl"))
+                }) {
                     println!("File already exists. Would you like to edit this file? Y|N");
 
                     match get_user_input().to_lowercase().as_str() {
@@ -63,7 +69,7 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
                 }
             }
         }
-        Some(file_name) => chosen_file = file_name
+        Some(file_name) => chosen_file = file_name,
     }
 
     user_file_folder.push(chosen_file.clone() + ".cl");
@@ -81,7 +87,13 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
 }
 
 fn get_file_name(file: fs::DirEntry) -> String {
-    let file_name = file.path().file_name().unwrap().to_str().unwrap().to_string();
+    let file_name = file
+        .path()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
     let dot = file_name.chars().position(|c| c == '.').unwrap();
 
     file_name[..dot].to_string()
@@ -94,7 +106,10 @@ fn get_file() -> Option<String> {
 
     print!("{EDIT_FILE_TEXT}");
 
-    let files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
+    let files = fs::read_dir(cl_core::remove_path_prefix(
+        user_file_folder.to_str().unwrap(),
+    ))
+    .unwrap();
 
     for user_file in files {
         println!("- {}", get_file_name(user_file.unwrap()));
@@ -102,14 +117,22 @@ fn get_file() -> Option<String> {
 
     println!("");
 
-    let mut files = fs::read_dir(cl_core::remove_path_prefix(user_file_folder.to_str().unwrap())).unwrap();
+    let mut files = fs::read_dir(cl_core::remove_path_prefix(
+        user_file_folder.to_str().unwrap(),
+    ))
+    .unwrap();
 
     let mut user_file = get_user_input();
-    while !files.any(|f| f.unwrap().path().file_name().unwrap().to_str() == Some(&(user_file.clone() + ".cl"))) {
+    while !files.any(|f| {
+        f.unwrap().path().file_name().unwrap().to_str() == Some(&(user_file.clone() + ".cl"))
+    }) {
         println!("File not found. Would you like to create this file? Y|N");
         match get_user_input().to_lowercase().as_str() {
-            "y" => {create_file(Some(user_file.clone())).unwrap(); return None},
-            _ => user_file = get_user_input()
+            "y" => {
+                create_file(Some(user_file.clone())).unwrap();
+                return None;
+            }
+            _ => user_file = get_user_input(),
         }
     }
 
@@ -125,9 +148,9 @@ fn edit_file(file_path: Option<String>) {
         None => {
             file_to_edit = match get_file() {
                 Some(file) => file,
-                None => return
+                None => return,
             }
-        },
+        }
         Some(filename) => {
             file_to_edit = filename;
         }
@@ -137,44 +160,38 @@ fn edit_file(file_path: Option<String>) {
 
     println!("Would you like to query the file? Y|N");
     match get_user_input().to_lowercase().as_str() {
-        "y" => {query_file(Some(file_to_edit)); return},
+        "y" => {
+            query_file(Some(file_to_edit));
+            return;
+        }
         _ => {}
     }
-
 }
 
 fn query_file(file_path: Option<String>) {
     let file_to_query = match file_path {
-        None => {
-            match get_file() {
-                Some(file) => file,
-                None => return
-            }
+        None => match get_file() {
+            Some(file) => file,
+            None => return,
         },
-        Some(file) => file
+        Some(file) => file,
     };
 
-    let colog = fs::read_to_string(file_to_query)
-        .unwrap();
+    let colog = fs::read_to_string(file_to_query).unwrap();
 
-    let pl = cl_core::transpile(colog)
-        .unwrap();
+    let pl = cl_core::transpile(colog).unwrap();
 
-    let mut tmp_location = env::current_exe()
-        .unwrap();
+    let mut tmp_location = env::current_exe().unwrap();
     tmp_location.pop();
     tmp_location.push("temp.pl");
 
-    fs::write(tmp_location.clone(), pl.0)
-        .unwrap();
+    fs::write(tmp_location.clone(), pl.0).unwrap();
 
-    let context = cl_core::start_prolog(tmp_location.to_str().unwrap())
-        .unwrap();
+    let context = cl_core::start_prolog(tmp_location.to_str().unwrap()).unwrap();
 
     let mut input = get_user_input();
     while &input != ":exit" {
-        let query = cl_core::transpile_query(input.clone())
-            .unwrap();
+        let query = cl_core::transpile_query(input.clone()).unwrap();
 
         let succeeded = cl_core::query_prolog(&context, query);
 
@@ -191,24 +208,33 @@ fn main() -> ExitCode {
 
     if let Some(file) = args.file {
         query_file(Some(file));
-        
+
         ExitCode::SUCCESS
     } else {
         print!("{MAIN_MENU_TEXT}");
         loop {
             match get_user_input().to_lowercase().as_str() {
-                "c" => {create_file(None).unwrap(); print!("{MAIN_MENU_TEXT}")},
-                "e" => {edit_file(None); print!("{MAIN_MENU_TEXT}")},
-                "q" => {query_file(None); print!("{MAIN_MENU_TEXT}")},
+                "c" => {
+                    create_file(None).unwrap();
+                    print!("{MAIN_MENU_TEXT}")
+                }
+                "e" => {
+                    edit_file(None);
+                    print!("{MAIN_MENU_TEXT}")
+                }
+                "q" => {
+                    query_file(None);
+                    print!("{MAIN_MENU_TEXT}")
+                }
                 "t" => todo!(),
                 "x" => return ExitCode::SUCCESS,
-                _ => println!("Unrecognised input")
+                _ => println!("Unrecognised input"),
             }
         }
     }
 }
 
-/* 
+/*
 fn _old_main() {
     env::set_var("RUST_BACKTRACE", "full");
     let _pl = cl_core::transpile(String::from("X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.")).unwrap();

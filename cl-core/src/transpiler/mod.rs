@@ -5,37 +5,41 @@ struct Identifier {
     cl_name: String,
     pl_name: String,
     article: Option<String>,
-    preposition: Option<String>
+    preposition: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifiers {
     identifiers: Vec<Identifier>,
     highest_literal: u16,
-    highest_variable: u16
+    highest_variable: u16,
 }
 
 impl Identifiers {
     fn new() -> Self {
-        let identifiers = vec![
-            Identifier {
-                cl_name: "eq".to_string(),
-                pl_name: "eq".to_string(),
-                article: None,
-                preposition: None
-            }
-        ];
-        Identifiers { identifiers, highest_literal: 0, highest_variable: 0 }
+        let identifiers = vec![Identifier {
+            cl_name: "eq".to_string(),
+            pl_name: "eq".to_string(),
+            article: None,
+            preposition: None,
+        }];
+        Identifiers {
+            identifiers,
+            highest_literal: 0,
+            highest_variable: 0,
+        }
     }
 
     fn get_from_cl_name(&self, cl_name: String) -> Option<Identifier> {
         for identifier in &self.identifiers {
-            if is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name.to_lowercase()
-            || !is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name {
-                return Some(identifier.clone())
+            if is_lowercase(&identifier.cl_name[0..1])
+                && identifier.cl_name == cl_name.to_lowercase()
+                || !is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name
+            {
+                return Some(identifier.clone());
             }
         }
-        
+
         None
     }
 
@@ -58,7 +62,10 @@ impl Identifiers {
         }
 
         self.identifiers.push(Identifier {
-            cl_name, pl_name: pl_name.clone(), article: statement.article, preposition: statement.preposition
+            cl_name,
+            pl_name: pl_name.clone(),
+            article: statement.article,
+            preposition: statement.preposition,
         });
 
         pl_name
@@ -68,7 +75,7 @@ impl Identifiers {
         let result;
 
         if identifier.kind == ast::IdenType::Pronoun {
-            return self.add(identifier)
+            return self.add(identifier);
         }
 
         if let Some(tmp) = self.get_from_cl_name(identifier.lexeme.clone()) {
@@ -94,7 +101,11 @@ impl From<Vec<Identifier>> for Identifiers {
             }
         }
 
-        Self { identifiers, highest_literal, highest_variable }
+        Self {
+            identifiers,
+            highest_literal,
+            highest_variable,
+        }
     }
 }
 
@@ -102,7 +113,7 @@ impl From<Vec<Identifier>> for Identifiers {
 pub struct Query {
     pub relationship: String,
     pub left: String,
-    pub right: Option<String>
+    pub right: Option<String>,
 }
 
 fn is_lowercase(s: &str) -> bool {
@@ -113,18 +124,27 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
     let mut output = String::new();
 
     match clause {
-        ast::Clause::Operator { op_type, left, right } => {
+        ast::Clause::Operator {
+            op_type,
+            left,
+            right,
+        } => {
             let (left, identifiers) = transpile_clause(*left, identifiers);
             let (right, identifiers) = transpile_clause(*right, identifiers);
 
             output = match op_type {
                 ast::OperatorType::And => format!("({left}, {right})"),
-                ast::OperatorType::Or => format!("({left}; {right})")
+                ast::OperatorType::Or => format!("({left}; {right})"),
             };
 
             (output, identifiers)
-        },
-        ast::Clause::Simple { negated, left, relationship, right } => {
+        }
+        ast::Clause::Simple {
+            negated,
+            left,
+            relationship,
+            right,
+        } => {
             if negated {
                 output += r"\+"
             }
@@ -141,10 +161,13 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
     }
 }
 
-pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>) -> (String, Vec<Query>, Identifiers) {
+pub fn transpile(
+    trees: Vec<ast::Stmt>,
+    initial_identifiers: Option<Identifiers>,
+) -> (String, Vec<Query>, Identifiers) {
     let mut identifiers = match initial_identifiers {
         Some(tmp) => tmp,
-        None => Identifiers::new()
+        None => Identifiers::new(),
     };
 
     let mut output = String::from("style_check(-discontiguous).\neq(X, Y) :- X == Y.\n");
@@ -157,11 +180,15 @@ pub fn transpile(trees: Vec<ast::Stmt>, initial_identifiers: Option<Identifiers>
                 let left = identifiers.get_or_create(tree.left);
                 let right = match tree.right {
                     Some(iden) => Some(identifiers.get_or_create(iden)),
-                    None => None
+                    None => None,
                 };
 
-                queries.push(Query { relationship, left, right })
-            },
+                queries.push(Query {
+                    relationship,
+                    left,
+                    right,
+                })
+            }
             _ => {
                 output += &format!("{}(", identifiers.get_or_create(tree.relationship));
                 output += &identifiers.get_or_create(tree.left);

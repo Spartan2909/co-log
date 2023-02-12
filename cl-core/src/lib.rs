@@ -3,15 +3,12 @@ use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 
-mod scanner;
-mod parser;
-mod transpiler;
 mod communicator;
+mod parser;
+mod scanner;
+mod transpiler;
 
-pub use communicator::{
-    start_prolog,
-    query_prolog
-};
+pub use communicator::{query_prolog, start_prolog};
 
 pub fn remove_path_prefix(s: &str) -> &str {
     if &s[..4] == r"\\?\" {
@@ -30,7 +27,9 @@ pub fn read_file(path: &str) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn transpile(source: String) -> Result<(String, Vec<transpiler::Query>, transpiler::Identifiers), parser::ParseError> {
+pub fn transpile(
+    source: String,
+) -> Result<(String, Vec<transpiler::Query>, transpiler::Identifiers), parser::ParseError> {
     let tokens = scanner::scan(source);
     //dbg!(&tokens);
     let trees = parser::parse(tokens)?;
