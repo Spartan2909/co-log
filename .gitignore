@@ -19,3 +19,9 @@ replit.nix
 
 # Generated Prolog
 *.pl
+
+# Environment files with personal data
+.env
+
+# Databases
+*.db

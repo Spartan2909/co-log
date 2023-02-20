@@ -5,11 +5,13 @@ use scrawl;
 use std::{
     env, fs,
     io::{self, BufRead},
-    process::ExitCode,
 };
+use tokio;
 
 mod text;
 use text::*;
+
+mod test;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -209,31 +211,35 @@ fn query_file(file_path: Option<String>) {
     eprintln!("error: implementation not finished")
 }
 
-fn main() -> ExitCode {
+#[tokio::main]
+async fn main() -> Result<(), sqlx::Error> {
     let args = Args::parse();
 
     if let Some(file) = args.file {
         query_file(Some(file));
 
-        ExitCode::SUCCESS
+        Ok(())
     } else {
         print!("{MAIN_MENU_TEXT}");
         loop {
             match get_user_input().to_lowercase().as_str() {
                 "c" => {
                     create_file(None).unwrap();
-                    print!("{MAIN_MENU_TEXT}")
+                    print!("{MAIN_MENU_TEXT}");
                 }
                 "e" => {
                     edit_file(None);
-                    print!("{MAIN_MENU_TEXT}")
+                    print!("{MAIN_MENU_TEXT}");
                 }
                 "q" => {
                     query_file(None);
-                    print!("{MAIN_MENU_TEXT}")
+                    print!("{MAIN_MENU_TEXT}");
                 }
-                "t" => todo!(),
-                "x" => return ExitCode::SUCCESS,
+                "t" => {
+                    test::test().await?;
+                    print!("{MAIN_MENU_TEXT}");
+                },
+                "x" => return Ok(()),
                 _ => println!("Unrecognised input"),
             }
         }

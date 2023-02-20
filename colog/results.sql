@@ -1,0 +1,9 @@
+CREATE DATABASE results;
+
+CREATE TABLE Result (
+    resultID INTEGER PRIMARY KEY AUTOINCREMENT,
+    numCorrect INTEGER NOT NULL,
+    name VARCHAR(15) NOT NULL,
+    timeTaken FLOAT NOT NULL,
+    date DATETIME NOT NULL
+)
