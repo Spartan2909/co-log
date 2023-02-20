@@ -9,7 +9,7 @@ E - Edit file
 
 Q - Query file
 
-T - Open tutorial
+T - Open test
 
 X - Exit
 

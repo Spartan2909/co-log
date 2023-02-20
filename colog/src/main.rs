@@ -189,13 +189,19 @@ fn query_file(file_path: Option<String>) {
 
     let context = cl_core::start_prolog(tmp_location.to_str().unwrap()).unwrap();
 
+    println!("Enter your queries, or enter ':exit' to finish.");
+
     let mut input = get_user_input();
     while &input != ":exit" {
         let query = cl_core::transpile_query(input.clone()).unwrap();
 
-        let succeeded = cl_core::query_prolog(&context, query);
+        let succeeded = cl_core::query_prolog(&context, query).unwrap();
 
-        dbg!(succeeded);
+        if succeeded {
+            println!("Yes");
+        } else {
+            println!("No");
+        }
 
         input = get_user_input();
     }

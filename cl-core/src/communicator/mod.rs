@@ -89,13 +89,13 @@ pub fn query_prolog(
             },
         };
         //soln = soln || next;
-        dbg!(
+        /*dbg!(
             terms[0].get::<String>(),
             terms[0].get::<Vec<u8>>(),
             terms[0].is_var(),
             terms[0].is_atom(),
             terms[0].is_string()
-        );
+        );*/
     }
 
     dbg!(&terms[0].get::<String>(), &terms[0].is_var(), soln);
