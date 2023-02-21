@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2021"
 authors.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 swipl = "0.3"
-swipl-fli = "0.3.4"
+#swipl-fli = "0.3.4"
