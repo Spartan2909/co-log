@@ -61,12 +61,17 @@ impl Question {
     }
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Clone)]
 struct TestResult {
     numCorrect: i64,
     name: String,
     timeTaken: f64,
     date: chrono::NaiveDateTime,
+}
+
+enum Attribute {
+    NumCorrect,
+    Time,
 }
 
 const QUESTIONS: [Question; 4] = [
@@ -103,6 +108,18 @@ const QUESTIONS: [Question; 4] = [
         Answer::C
     ),
 ];
+
+fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribute: Attribute) {
+    let mut i = start;
+    while i < end {
+        let mut j = i;
+        while j > 0 /*&& items[j - 1] > items[j]*/ {
+            (items[j], items[j - 1]) = (items[j - 1].clone(), items[j].clone());
+            j = j - 1;
+        }
+        i = i + 1;
+    }
+}
 
 async fn save_result(num_correct: u8, name: &str, time_taken: Duration) -> Result<(), sqlx::Error> {
     let database_url = env::vars().find(|x| x.0 == "DATABASE_URL").unwrap().1;
