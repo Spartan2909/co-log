@@ -1,7 +1,7 @@
 CREATE TABLE Result (
-    resultID INTEGER PRIMARY KEY AUTOINCREMENT,
-    numCorrect INTEGER NOT NULL,
+    result_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    num_correct INTEGER NOT NULL,
     name VARCHAR(15) NOT NULL,
-    timeTaken FLOAT NOT NULL,
+    time_taken FLOAT NOT NULL,
     date DATETIME NOT NULL
 )

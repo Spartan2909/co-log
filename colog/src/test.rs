@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use super::{get_user_input, text};
 
 use chrono::Local;
@@ -64,9 +62,9 @@ impl Question {
 
 #[derive(sqlx::FromRow, Debug, Clone)]
 struct TestResult {
-    numCorrect: i64,
+    num_correct: i64,
     name: String,
-    timeTaken: f64,
+    time_taken: f64,
     date: chrono::NaiveDateTime,
 }
 
@@ -113,8 +111,8 @@ const QUESTIONS: [Question; 4] = [
 
 fn gt(left: &TestResult, right: &TestResult, attribute: Attribute) -> bool {
     match attribute {
-        Attribute::NumCorrect => left.numCorrect > right.numCorrect,
-        Attribute::Time => left.timeTaken > right.timeTaken,
+        Attribute::NumCorrect => left.num_correct > right.num_correct,
+        Attribute::Time => left.time_taken > right.time_taken,
     }
 }
 
@@ -138,7 +136,7 @@ async fn save_result(num_correct: u8, name: &str, time_taken: Duration) -> Resul
     let time_taken = time_taken.as_secs_f32();
 
     query!(
-        "INSERT INTO Result (numCorrect, name, timeTaken, date)
+        "INSERT INTO Result (num_correct, name, time_taken, date)
         VALUES (?, ?, ?, ?)",
         num_correct,
         name,
@@ -157,7 +155,7 @@ async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
 
     let mut results = query_as!(
         TestResult,
-        "SELECT numCorrect, name, timeTaken, date
+        "SELECT num_correct, name, time_taken, date
         FROM Result"
     )
     .fetch_all(&mut conn)
@@ -167,14 +165,14 @@ async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
     insertion_sort(&mut results, 0, num_results, Attribute::NumCorrect);
     results.reverse();
 
-    let mut current_correct = results[0].numCorrect;
+    let mut current_correct = results[0].num_correct;
     let mut start = 0;
     let mut sections = vec![];
     for (i, result) in results.iter().enumerate() {
-        if result.numCorrect != current_correct {
+        if result.num_correct != current_correct {
             sections.push((start, i));
             start = i;
-            current_correct = result.numCorrect;
+            current_correct = result.num_correct;
         }
     }
     sections.push((start, num_results));
@@ -263,8 +261,8 @@ D - {}",
             "{: <10} | {: <15} | {: <15} | {: <10}",
             &result.date.to_string()[..10],
             result.name,
-            result.numCorrect,
-            format_time(result.timeTaken.round())
+            result.num_correct,
+            format_time(result.time_taken.round())
         );
     }
 
