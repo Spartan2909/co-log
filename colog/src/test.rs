@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum Answer {
     A,
     B,
@@ -32,6 +32,7 @@ impl TryFrom<String> for Answer {
     }
 }
 
+#[derive(Debug)]
 struct Question {
     question: &'static str,
     answer_a: &'static str,
@@ -61,7 +62,7 @@ impl Question {
     }
 }
 
-#[derive(sqlx::FromRow, Clone)]
+#[derive(sqlx::FromRow, Debug, Clone)]
 struct TestResult {
     numCorrect: i64,
     name: String,
@@ -69,6 +70,7 @@ struct TestResult {
     date: chrono::NaiveDateTime,
 }
 
+#[derive(Debug, Clone, Copy)]
 enum Attribute {
     NumCorrect,
     Time,
@@ -109,11 +111,18 @@ const QUESTIONS: [Question; 4] = [
     ),
 ];
 
+fn gt(left: &TestResult, right: &TestResult, attribute: Attribute) -> bool {
+    match attribute {
+        Attribute::NumCorrect => left.numCorrect > right.numCorrect,
+        Attribute::Time => left.timeTaken > right.timeTaken,
+    }
+}
+
 fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribute: Attribute) {
     let mut i = start;
     while i < end {
         let mut j = i;
-        while j > 0 /*&& items[j - 1] > items[j]*/ {
+        while j > start && gt(&items[j - 1], &items[j], attribute) {
             (items[j], items[j - 1]) = (items[j - 1].clone(), items[j].clone());
             j = j - 1;
         }
@@ -146,13 +155,38 @@ async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
     let database_url = env::vars().find(|x| x.0 == "DATABASE_URL").unwrap().1;
     let mut conn = SqliteConnection::connect(&database_url).await?;
 
-    query_as!(
+    let mut results = query_as!(
         TestResult,
         "SELECT numCorrect, name, timeTaken, date
         FROM Result"
     )
     .fetch_all(&mut conn)
-    .await
+    .await?;
+    let num_results = results.len();
+
+    insertion_sort(&mut results, 0, num_results, Attribute::NumCorrect);
+    results.reverse();
+
+    let mut current_correct = results[0].numCorrect;
+    let mut start = 0;
+    let mut sections = vec![];
+    for (i, result) in results.iter().enumerate() {
+        if result.numCorrect != current_correct {
+            sections.push((start, i));
+            start = i;
+            current_correct = result.numCorrect;
+        }
+    }
+    sections.push((start, num_results));
+
+    dbg!(&sections, &results);
+
+    for (start, end) in sections {
+        insertion_sort(&mut results, start, end, Attribute::Time);
+        dbg!(&results);
+    }
+
+    Ok(results)
 }
 
 fn format_time(seconds: f64) -> String {
