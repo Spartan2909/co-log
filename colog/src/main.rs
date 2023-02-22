@@ -238,7 +238,7 @@ async fn main() -> Result<(), sqlx::Error> {
                 "t" => {
                     test::test().await?;
                     print!("{MAIN_MENU_TEXT}");
-                },
+                }
                 "x" => return Ok(()),
                 _ => println!("Unrecognised input"),
             }
