@@ -177,11 +177,8 @@ async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
     }
     sections.push((start, num_results));
 
-    dbg!(&sections, &results);
-
     for (start, end) in sections {
         insertion_sort(&mut results, start, end, Attribute::Time);
-        dbg!(&results);
     }
 
     Ok(results)
