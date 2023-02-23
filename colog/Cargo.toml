@@ -13,4 +13,7 @@ clap = { version = "4.1", features = ["derive"] }
 sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "sqlite", "macros", "chrono"] }
 tokio = { version = "1", features = ["full"] }
 chrono = "0.4"
-dotenv = "0.15"
+dotenvy = "0.15"
+
+[build-dependencies]
+dotenvy = "0.15"

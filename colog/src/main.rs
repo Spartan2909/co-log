@@ -245,3 +245,6 @@ async fn main() -> Result<(), sqlx::Error> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;
