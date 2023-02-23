@@ -1,7 +1,7 @@
 use super::{get_user_input, text};
 
 use chrono::Local;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use sqlx::{query, query_as, Connection, SqliteConnection};
 use std::{
     env,
@@ -150,8 +150,12 @@ fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribu
     }
 }
 
-async fn save_result(num_correct: u8, name: &str, time_taken: Duration) -> Result<(), sqlx::Error> {
-    let database_url = env::vars().find(|x| x.0 == "DATABASE_URL").unwrap().1;
+pub async fn save_result(
+    num_correct: u8,
+    name: &str,
+    time_taken: Duration,
+) -> Result<(), sqlx::Error> {
+    let database_url = env::var("DATABASE_URL").unwrap();
     let mut conn = SqliteConnection::connect(&database_url).await?;
 
     let date = format!("{}", Local::now());
@@ -172,7 +176,7 @@ async fn save_result(num_correct: u8, name: &str, time_taken: Duration) -> Resul
 }
 
 async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
-    let database_url = env::vars().find(|x| x.0 == "DATABASE_URL").unwrap().1;
+    let database_url = env::var("DATABASE_URL").unwrap();
     let mut conn = SqliteConnection::connect(&database_url).await?;
 
     let mut results = query_as!(
