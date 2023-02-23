@@ -11,7 +11,7 @@ use tokio;
 mod text;
 use text::*;
 
-mod test;
+mod logic_test;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -236,7 +236,7 @@ async fn main() -> Result<(), sqlx::Error> {
                     print!("{MAIN_MENU_TEXT}");
                 }
                 "t" => {
-                    test::test().await?;
+                    logic_test::test().await?;
                     print!("{MAIN_MENU_TEXT}");
                 }
                 "x" => return Ok(()),
