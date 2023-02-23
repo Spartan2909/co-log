@@ -74,7 +74,7 @@ enum Attribute {
     Time,
 }
 
-const QUESTIONS: [Question; 4] = [
+const QUESTIONS: [Question; 5] = [
     Question::new(
         "What is the predicate in the following statement: 'John is the brother of Jack.'?",
         "John",
@@ -84,7 +84,7 @@ const QUESTIONS: [Question; 4] = [
         Answer::B,
     ),
     Question::new(
-        "What kind of clause is 'mammal' in the following statement: 'A hamster is a mammal'?",
+        "What kind of clause is the following statement: 'A hamster is a mammal'?",
         "Fact",
         "Rule",
         "Query",
@@ -92,7 +92,7 @@ const QUESTIONS: [Question; 4] = [
         Answer::A,
     ),
     Question::new(
-        "What kind of clause is 'sibling' in the following statement: 'X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.'?",
+        "What kind of clause is the following statement: 'X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.'?",
         "Fact",
         "Rule",
         "Query",
@@ -106,6 +106,28 @@ const QUESTIONS: [Question; 4] = [
         "2",
         "3",
         Answer::C
+    ),
+    Question::new(
+        "Who is the sister of Bob in the following system: 
+'Alice is female.
+Jane is female.
+
+Bob is male.
+Jack is male.
+John is male.
+
+Alice is the parent of Bob.
+Jack is the parent of Bob.
+Alice is the parent of Jane.
+Jack is the parent of John.
+
+X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.
+X is the sister of Y if X is the sibling of Y and X is female.'?",
+        "Alice",
+        "Jane",
+        "Jack",
+        "John",
+        Answer::A
     ),
 ];
 
