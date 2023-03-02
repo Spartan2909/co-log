@@ -18,6 +18,9 @@ mod logic_test;
 struct Args {
     /// The file to query
     file: Option<String>,
+
+    #[arg(short)]
+    dry_run: bool,
 }
 
 fn get_user_input() -> String {
@@ -216,7 +219,11 @@ async fn main() -> Result<(), sqlx::Error> {
     let args = Args::parse();
 
     if let Some(file) = args.file {
-        query_file(Some(file));
+        if args.dry_run {
+            cl_core::transpile(cl_core::read_file(&file).unwrap()).unwrap();
+        } else {
+            query_file(Some(file));
+        }
 
         Ok(())
     } else {
