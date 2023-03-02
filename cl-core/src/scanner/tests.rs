@@ -718,7 +718,7 @@ fn query_pronoun_pronoun() {
 
 #[test]
 fn program_1() {
-    test_tokens_equal("left", HashSet::from([
+    test_tokens_equal("A hamster is an animal. A hamster is warm-blooded. X is a mammal if X is an animal and X is warm-blooded.", HashSet::from([
         Token {
             kind: Article,
             lexeme: "A".to_string(),
@@ -881,11 +881,7 @@ fn program_1() {
 #[test]
 fn program_2() {
     test_tokens_equal(
-        "John is the parent of Jack.
-        John is the parent of Jane.
-        
-        X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.
-        ",
+        "John is the parent of Jack. John is the parent of Jane. X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.",
         HashSet::from([
             Token {
                 kind: Literal,

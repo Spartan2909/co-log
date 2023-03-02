@@ -529,7 +529,7 @@ fn query_pronoun_pronoun() {
 
 #[test]
 fn program_1() {
-    test_trees_equal("left", HashSet::from([
+    test_trees_equal("A hamster is an animal. A hamster is warm-blooded. X is a mammal if X is an animal and X is warm-blooded.", HashSet::from([
         Stmt {
             kind: Fact,
             left: Identifier {
@@ -633,7 +633,7 @@ fn program_1() {
 #[test]
 fn program_2() {
     test_trees_equal(
-        "left",
+        "John is the parent of Jack. John is the parent of Jane. X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.",
         HashSet::from([
             Stmt {
                 kind: Fact,

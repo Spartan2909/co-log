@@ -521,7 +521,7 @@ fn query_pronoun_pronoun() {
 
 #[test]
 fn program_1() {
-    assert_eq!(transpile(""), (
+    assert_eq!(transpile("A hamster is an animal. A hamster is warm-blooded. X is a mammal if X is an animal and X is warm-blooded."), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(l2).\nl3(l2).\nl4(V1) :- (l1(V1), l3(V1)).\n".to_string(),
         vec![],
         Identifiers {
@@ -577,7 +577,7 @@ fn program_1() {
 
 #[test]
 fn program_2() {
-    assert_eq!(transpile("source"), (
+    assert_eq!(transpile("John is the parent of Jack. John is the parent of Jane. X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y."), (
         "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(l2, l3).\nl1(l2, l4).\nl5(V1, V2) :- (l1(V3, V1), (l1(V3, V2), \\+eq(V1, V2))).\n".to_string(),
         vec![],
         Identifiers {
