@@ -61,7 +61,7 @@ impl Question {
 }
 
 #[derive(sqlx::FromRow, Debug, Clone)]
-struct TestResult {
+pub(crate) struct TestResult {
     num_correct: i64,
     name: String,
     time_taken: f64,
@@ -150,7 +150,7 @@ fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribu
     }
 }
 
-pub async fn save_result(
+pub(crate) async fn save_result(
     num_correct: u8,
     name: &str,
     time_taken: Duration,
@@ -175,7 +175,7 @@ pub async fn save_result(
     Ok(())
 }
 
-async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
+pub(crate) async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
     let database_url = env::var("DATABASE_URL").unwrap();
     let mut conn = SqliteConnection::connect(&database_url).await?;
 

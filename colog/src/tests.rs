@@ -1,8 +1,8 @@
 use std::{env, time::Duration};
 
+use dotenvy::dotenv;
 use sqlx::{query, Connection, SqliteConnection};
 use tokio;
-use dotenvy::dotenv;
 
 use super::logic_test::*;
 
@@ -21,4 +21,9 @@ async fn create_entry() {
         .execute(&mut conn)
         .await
         .unwrap();
+}
+
+#[tokio::test]
+async fn read_database() {
+    get_leaderboard().await.unwrap();
 }
