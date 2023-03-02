@@ -518,3 +518,135 @@ fn query_pronoun_pronoun() {
         )
     )
 }
+
+#[test]
+fn program_1() {
+    assert_eq!(transpile(""), (
+        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(l2).\nl3(l2).\nl4(V1) :- (l1(V1), l3(V1)).\n".to_string(),
+        vec![],
+        Identifiers {
+            identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "animal".to_string(),
+                    pl_name: "l1".to_string(),
+                    article: Some(
+                        "an".to_string(),
+                    ),
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "hamster".to_string(),
+                    pl_name: "l2".to_string(),
+                    article: Some(
+                        "A".to_string(),
+                    ),
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "warm-blooded".to_string(),
+                    pl_name: "l3".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "mammal".to_string(),
+                    pl_name: "l4".to_string(),
+                    article: Some(
+                        "a".to_string(),
+                    ),
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "X".to_string(),
+                    pl_name: "V1".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+            ],
+            highest_literal: 4,
+            highest_variable: 1,
+        },
+    ))
+}
+
+#[test]
+fn program_2() {
+    assert_eq!(transpile("source"), (
+        "style_check(-discontiguous).\neq(X, Y) :- X == Y.\nl1(l2, l3).\nl1(l2, l4).\nl5(V1, V2) :- (l1(V3, V1), (l1(V3, V2), \\+eq(V1, V2))).\n".to_string(),
+        vec![],
+        Identifiers {
+            identifiers: vec![
+                Identifier {
+                    cl_name: "eq".to_string(),
+                    pl_name: "eq".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "parent".to_string(),
+                    pl_name: "l1".to_string(),
+                    article: Some(
+                        "the".to_string(),
+                    ),
+                    preposition: Some(
+                        "of".to_string(),
+                    ),
+                },
+                Identifier {
+                    cl_name: "john".to_string(),
+                    pl_name: "l2".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "jack".to_string(),
+                    pl_name: "l3".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "jane".to_string(),
+                    pl_name: "l4".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "sibling".to_string(),
+                    pl_name: "l5".to_string(),
+                    article: Some(
+                        "the".to_string(),
+                    ),
+                    preposition: Some(
+                        "of".to_string(),
+                    ),
+                },
+                Identifier {
+                    cl_name: "X".to_string(),
+                    pl_name: "V1".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "Y".to_string(),
+                    pl_name: "V2".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+                Identifier {
+                    cl_name: "Z".to_string(),
+                    pl_name: "V3".to_string(),
+                    article: None,
+                    preposition: None,
+                },
+            ],
+            highest_literal: 5,
+            highest_variable: 3,
+        },
+    ))
+}

@@ -715,3 +715,424 @@ fn query_pronoun_pronoun() {
         ]),
     )
 }
+
+#[test]
+fn program_1() {
+    test_tokens_equal("left", HashSet::from([
+        Token {
+            kind: Article,
+            lexeme: "A".to_string(),
+            start: 0,
+            length: 1,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "hamster".to_string(),
+            start: 2,
+            length: 7,
+        },
+        Token {
+            kind: Verb,
+            lexeme: "is".to_string(),
+            start: 10,
+            length: 2,
+        },
+        Token {
+            kind: Article,
+            lexeme: "an".to_string(),
+            start: 13,
+            length: 2,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "animal".to_string(),
+            start: 16,
+            length: 6,
+        },
+        Token {
+            kind: FullStop,
+            lexeme: ".".to_string(),
+            start: 22,
+            length: 1,
+        },
+        Token {
+            kind: Article,
+            lexeme: "A".to_string(),
+            start: 25,
+            length: 1,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "hamster".to_string(),
+            start: 27,
+            length: 7,
+        },
+        Token {
+            kind: Verb,
+            lexeme: "is".to_string(),
+            start: 35,
+            length: 2,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "warm-blooded".to_string(),
+            start: 38,
+            length: 12,
+        },
+        Token {
+            kind: FullStop,
+            lexeme: ".".to_string(),
+            start: 50,
+            length: 1,
+        },
+        Token {
+            kind: Variable,
+            lexeme: "X".to_string(),
+            start: 53,
+            length: 1,
+        },
+        Token {
+            kind: Verb,
+            lexeme: "is".to_string(),
+            start: 55,
+            length: 2,
+        },
+        Token {
+            kind: Article,
+            lexeme: "a".to_string(),
+            start: 58,
+            length: 1,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "mammal".to_string(),
+            start: 60,
+            length: 6,
+        },
+        Token {
+            kind: If,
+            lexeme: "if".to_string(),
+            start: 67,
+            length: 2,
+        },
+        Token {
+            kind: Variable,
+            lexeme: "X".to_string(),
+            start: 70,
+            length: 1,
+        },
+        Token {
+            kind: Verb,
+            lexeme: "is".to_string(),
+            start: 72,
+            length: 2,
+        },
+        Token {
+            kind: Article,
+            lexeme: "an".to_string(),
+            start: 75,
+            length: 2,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "animal".to_string(),
+            start: 78,
+            length: 6,
+        },
+        Token {
+            kind: Operator,
+            lexeme: "and".to_string(),
+            start: 85,
+            length: 3,
+        },
+        Token {
+            kind: Variable,
+            lexeme: "X".to_string(),
+            start: 89,
+            length: 1,
+        },
+        Token {
+            kind: Verb,
+            lexeme: "is".to_string(),
+            start: 91,
+            length: 2,
+        },
+        Token {
+            kind: Literal,
+            lexeme: "warm-blooded".to_string(),
+            start: 94,
+            length: 12,
+        },
+        Token {
+            kind: FullStop,
+            lexeme: ".".to_string(),
+            start: 106,
+            length: 1,
+        },
+        Token {
+            kind: EOF,
+            lexeme: "".to_string(),
+            start: 108,
+            length: 0,
+        },
+    ]))
+}
+
+#[test]
+fn program_2() {
+    test_tokens_equal(
+        "John is the parent of Jack.
+        John is the parent of Jane.
+        
+        X is the sibling of Y if Z is the parent of X and Z is the parent of Y and X is not Y.
+        ",
+        HashSet::from([
+            Token {
+                kind: Literal,
+                lexeme: "John".to_string(),
+                start: 0,
+                length: 4,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 5,
+                length: 2,
+            },
+            Token {
+                kind: Article,
+                lexeme: "the".to_string(),
+                start: 8,
+                length: 3,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "parent".to_string(),
+                start: 12,
+                length: 6,
+            },
+            Token {
+                kind: Prepostion,
+                lexeme: "of".to_string(),
+                start: 19,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "Jack".to_string(),
+                start: 22,
+                length: 4,
+            },
+            Token {
+                kind: FullStop,
+                lexeme: ".".to_string(),
+                start: 26,
+                length: 1,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "John".to_string(),
+                start: 28,
+                length: 4,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 33,
+                length: 2,
+            },
+            Token {
+                kind: Article,
+                lexeme: "the".to_string(),
+                start: 36,
+                length: 3,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "parent".to_string(),
+                start: 40,
+                length: 6,
+            },
+            Token {
+                kind: Prepostion,
+                lexeme: "of".to_string(),
+                start: 47,
+                length: 2,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "Jane".to_string(),
+                start: 50,
+                length: 4,
+            },
+            Token {
+                kind: FullStop,
+                lexeme: ".".to_string(),
+                start: 54,
+                length: 1,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "X".to_string(),
+                start: 57,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 59,
+                length: 2,
+            },
+            Token {
+                kind: Article,
+                lexeme: "the".to_string(),
+                start: 62,
+                length: 3,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "sibling".to_string(),
+                start: 66,
+                length: 7,
+            },
+            Token {
+                kind: Prepostion,
+                lexeme: "of".to_string(),
+                start: 74,
+                length: 2,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "Y".to_string(),
+                start: 77,
+                length: 1,
+            },
+            Token {
+                kind: If,
+                lexeme: "if".to_string(),
+                start: 79,
+                length: 2,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "Z".to_string(),
+                start: 82,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 84,
+                length: 2,
+            },
+            Token {
+                kind: Article,
+                lexeme: "the".to_string(),
+                start: 87,
+                length: 3,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "parent".to_string(),
+                start: 91,
+                length: 6,
+            },
+            Token {
+                kind: Prepostion,
+                lexeme: "of".to_string(),
+                start: 98,
+                length: 2,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "X".to_string(),
+                start: 101,
+                length: 1,
+            },
+            Token {
+                kind: Operator,
+                lexeme: "and".to_string(),
+                start: 103,
+                length: 3,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "Z".to_string(),
+                start: 107,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 109,
+                length: 2,
+            },
+            Token {
+                kind: Article,
+                lexeme: "the".to_string(),
+                start: 112,
+                length: 3,
+            },
+            Token {
+                kind: Literal,
+                lexeme: "parent".to_string(),
+                start: 116,
+                length: 6,
+            },
+            Token {
+                kind: Prepostion,
+                lexeme: "of".to_string(),
+                start: 123,
+                length: 2,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "Y".to_string(),
+                start: 126,
+                length: 1,
+            },
+            Token {
+                kind: Operator,
+                lexeme: "and".to_string(),
+                start: 128,
+                length: 3,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "X".to_string(),
+                start: 132,
+                length: 1,
+            },
+            Token {
+                kind: Verb,
+                lexeme: "is".to_string(),
+                start: 134,
+                length: 2,
+            },
+            Token {
+                kind: Not,
+                lexeme: "not".to_string(),
+                start: 137,
+                length: 3,
+            },
+            Token {
+                kind: Variable,
+                lexeme: "Y".to_string(),
+                start: 141,
+                length: 1,
+            },
+            Token {
+                kind: FullStop,
+                lexeme: ".".to_string(),
+                start: 142,
+                length: 1,
+            },
+            Token {
+                kind: EOF,
+                lexeme: "".to_string(),
+                start: 144,
+                length: 0,
+            },
+        ]),
+    );
+}
