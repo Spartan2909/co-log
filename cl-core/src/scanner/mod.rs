@@ -1,5 +1,6 @@
 use self::TokenType::*;
 
+/// The type of token that an instance of Token represents.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum TokenType {
     // Single character tokens
@@ -24,6 +25,8 @@ pub enum TokenType {
     EOF,
 }
 
+/// A token of the user's source code.
+/// This represents a single keyword, identifier, or piece of punctuation, or the end of the file.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Token {
     pub kind: TokenType,
@@ -33,6 +36,7 @@ pub struct Token {
 }
 
 impl Token {
+    /// Construct a new token with the given TokenType, lexeme, start, and length
     fn new(kind: TokenType, lexeme: &str, start: usize, length: usize) -> Self {
         Token {
             kind,
@@ -42,19 +46,23 @@ impl Token {
         }
     }
 
+    /// Determines whether the token is a terminator i.e. '.' or '?'
     pub fn is_terminator(&self) -> bool {
         [FullStop, QuestionMark].contains(&self.kind)
     }
 
+    /// Determines whether the token is a user-defined identifier.
     pub fn is_identifier(&self) -> bool {
         [Literal, Variable].contains(&self.kind)
     }
 }
 
+/// Determines whether the given character is valid in an identifier.
 fn valid_iden(c: char) -> bool {
     c.is_alphabetic() || c == '-' || c == '_'
 }
 
+/// Extracts a single word from the given source string, starting at 'start'.
 fn get_word(source: &str, start: usize) -> String {
     let mut end = start;
     while end < source.len() && valid_iden(source.chars().nth(end).unwrap()) {
@@ -64,6 +72,7 @@ fn get_word(source: &str, start: usize) -> String {
     String::from(&source[start..end])
 }
 
+/// Finds the next newline after position i in the given source string.
 fn find_newline(source: String, mut i: usize) -> usize {
     while &source[i..i + 1] != "\n" {
         i += 1
@@ -72,6 +81,7 @@ fn find_newline(source: String, mut i: usize) -> usize {
     i
 }
 
+/// Scans the given source string, converting it into a series of tokens.
 pub fn scan(source: String) -> Vec<Token> {
     let mut tokens = Vec::new();
 
