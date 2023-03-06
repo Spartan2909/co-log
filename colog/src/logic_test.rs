@@ -155,6 +155,8 @@ pub(crate) async fn save_result(
     name: &str,
     time_taken: Duration,
 ) -> Result<(), sqlx::Error> {
+    dotenv().expect("failed to read environment variables");
+
     let database_url = env::var("DATABASE_URL").unwrap();
     let mut conn = SqliteConnection::connect(&database_url).await?;
 
@@ -176,6 +178,8 @@ pub(crate) async fn save_result(
 }
 
 pub(crate) async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
+    dotenv().expect("failed to read environment variables");
+
     let database_url = env::var("DATABASE_URL").unwrap();
     let mut conn = SqliteConnection::connect(&database_url).await?;
 
@@ -227,8 +231,6 @@ fn format_time(seconds: f64) -> String {
 }
 
 pub async fn test() -> Result<(), sqlx::Error> {
-    dotenv().ok();
-
     print!("{}", text::TEST_START_TEXT);
 
     println!("Please enter your name:");
