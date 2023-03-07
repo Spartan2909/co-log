@@ -90,6 +90,7 @@ pub fn scan(source: String) -> Vec<Token> {
         let c = source.chars().nth(i).unwrap();
         match c {
             c if c.is_whitespace() => {
+                // Ignore and move to next character
                 i += 1;
                 continue;
             }
@@ -98,6 +99,7 @@ pub fn scan(source: String) -> Vec<Token> {
             '.' => tokens.push(Token::new(FullStop, ".", i, 1)),
             '?' => tokens.push(Token::new(QuestionMark, "?", i, 1)),
             '#' => {
+                // Comment, skip to next line
                 i = find_newline(source.clone(), i);
                 continue;
             }
@@ -113,6 +115,7 @@ pub fn scan(source: String) -> Vec<Token> {
                     "who" | "what" => Pronoun,
                     "not" => Not,
                     _ => {
+                        // If the last character is lowercase
                         if lexeme.chars().nth(length - 1).unwrap().is_lowercase() {
                             Literal
                         } else {

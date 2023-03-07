@@ -41,17 +41,16 @@ impl ParseError {
 
 impl Error for ParseError {}
 
-fn index_unwrapped_operator(
+fn find_unwrapped_operator(
     tokens: &Vec<scanner::Token>,
     mut i: usize,
     next_term: usize,
-    search_kind: TokenType,
 ) -> Option<usize> {
     let mut open_paren = 0;
 
     while i < tokens.len() && i < next_term {
         match &tokens[i].kind {
-            kind if kind == &search_kind => {
+            kind if kind == &TokenType::Operator => {
                 //dbg!(open_paren);
                 if open_paren == 0 {
                     return Some(i);
@@ -68,44 +67,48 @@ fn index_unwrapped_operator(
     None
 }
 
+/// Finds the next closing parenthesis after 'i' and before 'end'.
+/// Returns the index of the closing parenthesis if it is found, and 'end' if it isn't.
 fn find_close(
     tokens: &Vec<scanner::Token>,
     mut i: usize,
-    next_term: usize,
-) -> Result<usize, usize> {
-    while i < next_term {
+    end: usize,
+) -> Option<usize> {
+    while i < end {
         if tokens[i].kind == TokenType::RightParen {
-            return Ok(i);
+            return Some(i);
         }
 
         i += 1
     }
 
-    Err(i)
+    None
 }
 
+/// Remove the articles from a vec of tokens, starting at index i and ending at a terminator.
+/// Returns a copy of the tokens with the articles stripped out, and a vec of articles, with positions 0, 1, and 2 referring to the left identifier, the relationship, and the right identifier respectively.
 fn collapse_articles(
     tokens: &Vec<scanner::Token>,
     mut i: usize,
 ) -> (Vec<scanner::Token>, Vec<Option<scanner::Token>>) {
     let mut result = Vec::new();
     let mut articles = Vec::new();
-    let mut article_last_iter = false;
+    let mut article_found_on_last_iteration = false;
 
     loop {
         if tokens[i].kind == TokenType::Article {
             articles.push(Some(tokens[i].clone()));
-            article_last_iter = true
+            article_found_on_last_iteration = true
         } else {
             if [TokenType::Literal, TokenType::Variable, TokenType::Pronoun]
                 .contains(&tokens[i].kind)
-                && !article_last_iter
+                && !article_found_on_last_iteration
             {
                 articles.push(None)
             }
 
             result.push(tokens[i].clone());
-            article_last_iter = false;
+            article_found_on_last_iteration = false;
         }
 
         i += 1;
@@ -117,6 +120,7 @@ fn collapse_articles(
     (result, articles)
 }
 
+/// Check if a token of type 'kind' exists between indexes start and end in tokens, returning false if a token of type 'stop_at' is found.
 fn type_between(
     tokens: &Vec<scanner::Token>,
     start: usize,
@@ -138,18 +142,19 @@ fn type_between(
     false
 }
 
+/// Parse 'tokens' into a clause, starting from 'i' and ending at 'end'.
 fn parse_clause(
-    tokens: Vec<scanner::Token>,
+    tokens: &Vec<scanner::Token>,
     i: usize,
-    next_term: usize,
+    end: usize,
 ) -> Result<ast::Clause, ParseError> {
     //dbg!(tokens[i].start);
     //dbg!(&tokens[i..next_term]);
     let (collapsed, articles) = collapse_articles(&tokens, i);
-    if let Some(op_index) = index_unwrapped_operator(&tokens, i, next_term, TokenType::Operator) {
-        let operator = tokens[op_index].clone();
-        let left = Box::new(parse_clause(tokens.clone(), i, op_index)?);
-        let right = Box::new(parse_clause(tokens.clone(), op_index + 1, next_term)?);
+    if let Some(op_index) = find_unwrapped_operator(&tokens, i, end) {
+        let operator = &tokens[op_index];
+        let left = Box::new(parse_clause(tokens, i, op_index)?);
+        let right = Box::new(parse_clause(tokens, op_index + 1, end)?);
 
         let op_type = if operator.lexeme.to_lowercase() == "and" {
             ast::OperatorType::And
@@ -165,13 +170,11 @@ fn parse_clause(
     }
 
     if collapsed[0].kind == TokenType::LeftParen {
-        let close_paren = find_close(&tokens, i, next_term);
-
-        match close_paren {
-            Ok(close) => return parse_clause(tokens, i + 1, close),
-            Err(terminator) => {
+        match find_close(&tokens, i, end) {
+            Some(close) => return parse_clause(tokens, i + 1, close),
+            None => {
                 return Err(ParseError::new(
-                    collapsed[terminator].clone(),
+                    collapsed[end].clone(),
                     TokenType::RightParen,
                 ))
             }
@@ -188,26 +191,26 @@ fn parse_clause(
         let binary = type_between(
             &normalised,
             0,
-            next_term,
+            end,
             TokenType::Prepostion,
             TokenType::FullStop,
         );
 
-        let mut left = ast::Identifier::try_from(normalised[0].clone())?;
-        if articles[0].is_some() {
-            left.article = Some(articles[0].clone().unwrap().lexeme)
+        let mut left = ast::Identifier::try_from(&normalised[0])?;
+        if let Some(article) = &articles[0] {
+            left.article = Some(article.lexeme.clone())
         }
 
-        let mut relationship = ast::Identifier::try_from(normalised[2].clone())?;
-        if articles[1].is_some() {
-            relationship.article = Some(articles[1].clone().unwrap().lexeme)
+        let mut relationship = ast::Identifier::try_from(&normalised[2])?;
+        if let Some(article) = &articles[1] {
+            relationship.article = Some(article.lexeme.clone())
         }
 
         let right = if binary {
             relationship.preposition = Some(normalised[3].lexeme.clone());
-            let mut right_tmp = ast::Identifier::try_from(normalised[4].clone())?;
-            if articles[2].is_some() {
-                right_tmp.article = Some(articles[2].clone().unwrap().lexeme)
+            let mut right_tmp = ast::Identifier::try_from(&normalised[4])?;
+            if let Some(article) = &articles[2] {
+                right_tmp.article = Some(article.lexeme.clone())
             }
             Some(right_tmp)
         } else if relationship.kind == ast::IdenType::Variable {
@@ -245,10 +248,11 @@ fn parse_clause(
     })
 }
 
+/// Checks if a vec of tokens contains a token of type 'kind' after 'i' and before a terminator.
 fn tokens_contain(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> bool {
     while i < tokens.len() {
         if tokens[i].is_terminator() {
-            break;
+            return false;
         }
 
         if tokens[i].kind == kind {
@@ -261,7 +265,8 @@ fn tokens_contain(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -
     false
 }
 
-fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Token, usize) {
+/// Returns a copy of the next terminator along, with its location in 'tokens'.
+fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (&scanner::Token, usize) {
     loop {
         if tokens[i].is_terminator() {
             break;
@@ -273,9 +278,10 @@ fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (scanner::Toke
         }
     }
 
-    (tokens[i].clone(), i)
+    (&tokens[i], i)
 }
 
+/// Finds the index of the next occurrence of 'kind' in 'tokens'.
 fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usize {
     while i < tokens.len() {
         if tokens[i].kind == kind {
@@ -287,7 +293,9 @@ fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usi
     i
 }
 
-fn parse_stmt(tokens: Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize), ParseError> {
+/// Parses a sequence of tokens into a statement, starting from 'i'.
+/// Returns the created statement along with the index it stopped at.
+fn parse_stmt(tokens: &Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize), ParseError> {
     let (_, stmt_end) = next_terminator(&tokens, i);
 
     let mut binary = type_between(
@@ -319,14 +327,14 @@ fn parse_stmt(tokens: Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize
         }
     }
 
-    let mut left = ast::Identifier::try_from(collapsed[left_index].clone())?;
-    if let Some(tmp) = articles[0].clone() {
-        left.article = Some(tmp.lexeme);
+    let mut left = ast::Identifier::try_from(&collapsed[left_index])?;
+    if let Some(tmp) = &articles[0] {
+        left.article = Some(tmp.lexeme.clone());
     }
 
-    let mut relationship = ast::Identifier::try_from(collapsed[rel_index].clone())?;
-    if let Some(tmp) = articles[1].clone() {
-        relationship.article = Some(tmp.lexeme);
+    let mut relationship = ast::Identifier::try_from(&collapsed[rel_index])?;
+    if let Some(tmp) = &articles[1] {
+        relationship.article = Some(tmp.lexeme.clone());
     }
 
     let mut stmt = ast::Stmt {
@@ -340,9 +348,9 @@ fn parse_stmt(tokens: Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize
     if binary {
         let preposition = collapsed[3].lexeme.clone();
         stmt.relationship.preposition = Some(preposition);
-        let mut right = ast::Identifier::try_from(collapsed[right_index].clone())?;
-        if let Some(tmp) = articles[2].clone() {
-            right.article = Some(tmp.lexeme)
+        let mut right = ast::Identifier::try_from(&collapsed[right_index])?;
+        if let Some(article) = &articles[2] {
+            right.article = Some(article.lexeme.clone())
         }
         stmt.right = Some(right)
     }
@@ -357,6 +365,7 @@ fn parse_stmt(tokens: Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize
     Ok((stmt, stmt_end))
 }
 
+/// Parses a sequence of tokens into an abstract syntax tree.
 pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> {
     let mut trees: Vec<ast::Stmt> = Vec::new();
 
@@ -366,7 +375,7 @@ pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> 
         match tokens[i].kind {
             EOF => break,
             Article | Literal | Variable | Pronoun | Verb => {
-                let (tree, end) = parse_stmt(tokens.clone(), i)?;
+                let (tree, end) = parse_stmt(&tokens, i)?;
                 //dbg!(&tree);
                 trees.push(tree);
                 i = end + 1
