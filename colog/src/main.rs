@@ -186,7 +186,7 @@ fn query_file(file_path: Option<String>) {
 
     let pl = cl_core::transpile(colog).unwrap();
 
-    let mut tmp_location = env::current_exe().unwrap();
+    let mut tmp_location = env::current_exe().expect("failed to get location of executable");
     tmp_location.pop();
     tmp_location.push("temp.pl");
 
