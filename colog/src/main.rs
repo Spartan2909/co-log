@@ -4,7 +4,7 @@ use directories::ProjectDirs;
 use scrawl;
 use std::{
     env, fs,
-    io::{self, BufRead},
+    io::{self, BufRead, Write},
 };
 use tokio;
 
@@ -228,6 +228,8 @@ async fn main() -> Result<(), sqlx::Error> {
         Ok(())
     } else {
         print!("{MAIN_MENU_TEXT}");
+        print!("> ");
+        let _ = io::stdout().flush();
         loop {
             match get_user_input().to_lowercase().as_str() {
                 "c" => {

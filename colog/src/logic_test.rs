@@ -5,6 +5,7 @@ use dotenvy::dotenv;
 use sqlx::{query, query_as, Connection, SqliteConnection};
 use std::{
     env,
+    io::{self, Write},
     time::{Duration, Instant},
 };
 
@@ -256,6 +257,8 @@ D - {}",
 
         let answer;
         loop {
+            print!("> ");
+            let _ = io::stdout().flush();
             match Answer::try_from(get_user_input()) {
                 Ok(a) => {
                     answer = a;
