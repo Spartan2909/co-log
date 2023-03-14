@@ -1,5 +1,6 @@
 use crate::parser::ast;
 
+/// An identifier defined in Co-log, with its article and preposition, and the name used to refer to it in Prolog.
 #[derive(Debug, Clone, PartialEq)]
 struct Identifier {
     cl_name: String,
@@ -8,6 +9,7 @@ struct Identifier {
     preposition: Option<String>,
 }
 
+/// A set of identifiers defined in a co-log program.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifiers {
     identifiers: Vec<Identifier>,
@@ -30,6 +32,7 @@ impl Identifiers {
         }
     }
 
+    /// Given a co-log identifier's name, get its Prolog name.
     fn get_from_cl_name(&self, cl_name: String) -> Option<Identifier> {
         for identifier in &self.identifiers {
             if is_lowercase(&identifier.cl_name[0..1])
@@ -97,7 +100,7 @@ impl From<Vec<Identifier>> for Identifiers {
             match &identifier.pl_name.as_str()[0..1] {
                 "V" => highest_variable = identifier.pl_name[1..].parse::<u16>().unwrap(),
                 "l" => highest_literal = identifier.pl_name[1..].parse::<u16>().unwrap(),
-                &_ => {} // Unreachable
+                _ => {} // Unreachable
             }
         }
 
@@ -161,6 +164,8 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
     }
 }
 
+/// Transpile a series of abstract syntax trees into a Prolog file.
+/// Returns the generated Prolog, the queries, and a map of Co-log identifiers to Prolog names.
 pub fn transpile(
     trees: Vec<ast::Stmt>,
     initial_identifiers: Option<Identifiers>,

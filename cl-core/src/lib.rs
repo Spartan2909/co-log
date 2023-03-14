@@ -10,6 +10,7 @@ mod transpiler;
 
 pub use communicator::{query_prolog, start_prolog};
 
+/// Remove the '\\?\' prefix that Windows sometimes adds to paths.
 pub fn remove_path_prefix(s: &str) -> &str {
     if &s[..4] == r"\\?\" {
         &s[4..]
@@ -18,6 +19,7 @@ pub fn remove_path_prefix(s: &str) -> &str {
     }
 }
 
+// Read a file to a string.
 pub fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
     let mut file = File::open(&path)?;
@@ -27,6 +29,8 @@ pub fn read_file(path: &str) -> io::Result<String> {
     Ok(s)
 }
 
+/// Transpile a given source string to Prolog.
+/// Returns the generated code, any queries included in the source string, and a table to translate identifiers from Prolog to co-log.
 pub fn transpile(
     source: String,
 ) -> Result<(String, Vec<transpiler::Query>, transpiler::Identifiers), parser::ParseError> {
@@ -37,8 +41,9 @@ pub fn transpile(
     Ok(transpiler::transpile(trees, None))
 }
 
+/// Transpiles a given source string to Prolog, returning a single query.
 pub fn transpile_query(source: String) -> Result<transpiler::Query, parser::ParseError> {
-    let transpiled = transpile(source)?;
+    let (_, queries, _) = transpile(source)?;
 
-    Ok(transpiled.1[0].clone())
+    Ok(queries[0].clone())
 }

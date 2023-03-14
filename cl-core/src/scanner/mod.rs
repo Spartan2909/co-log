@@ -1,5 +1,3 @@
-use self::TokenType::*;
-
 /// The type of token that an instance of Token represents.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum TokenType {
@@ -25,14 +23,16 @@ pub enum TokenType {
     EOF,
 }
 
+use TokenType::*;
+
 /// A token of the user's source code.
 /// This represents a single keyword, identifier, or piece of punctuation, or the end of the file.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Token {
-    pub kind: TokenType,
-    pub lexeme: String,
-    pub start: usize,
-    pub length: usize,
+    pub(crate) kind: TokenType,
+    pub(crate) lexeme: String,
+    pub(crate) start: usize,
+    pub(crate) length: usize,
 }
 
 impl Token {

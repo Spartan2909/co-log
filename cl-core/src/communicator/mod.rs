@@ -1,6 +1,7 @@
 use swipl::prelude::*;
 //use swipl_fli;
 
+/// Starts an instance of Prolog, loading the file at 'source'.
 pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
     let mut activation_attempts = 0_u8;
     let activation = loop {
@@ -28,6 +29,8 @@ pub fn start_prolog(source: &str) -> PrologResult<Context<ActivatedEngine>> {
     Ok(context)
 }
 
+/// Queries Prolog with the given query.
+/// Returns true if Prolog found at least one solution, and false otherwise.
 pub fn query_prolog(
     context: &Context<ActivatedEngine>,
     query: crate::transpiler::Query,

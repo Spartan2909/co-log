@@ -41,6 +41,8 @@ impl ParseError {
 
 impl Error for ParseError {}
 
+/// Finds the next non-parenthesised operator.
+/// Returns the index of the operator if one is found, and None otherwise.
 fn find_unwrapped_operator(
     tokens: &Vec<scanner::Token>,
     mut i: usize,
@@ -151,6 +153,8 @@ fn parse_clause(
     //dbg!(tokens[i].start);
     //dbg!(&tokens[i..next_term]);
     let (collapsed, articles) = collapse_articles(&tokens, i);
+
+    // If the clause is of the form `clause op clause`
     if let Some(op_index) = find_unwrapped_operator(&tokens, i, end) {
         let operator = &tokens[op_index];
         let left = Box::new(parse_clause(tokens, i, op_index)?);
@@ -169,6 +173,7 @@ fn parse_clause(
         });
     }
 
+    // If the clause is of the form `(clause)`
     if collapsed[0].kind == TokenType::LeftParen {
         match find_close(&tokens, i, end) {
             Some(close) => return parse_clause(tokens, i + 1, close),
@@ -181,6 +186,7 @@ fn parse_clause(
         }
     }
 
+    // If the clause is of the form `article? identifier verb ‘not’? article? literal (preposition article? identifier)?`
     if collapsed[0].is_identifier() {
         let negated = collapsed[2].kind == TokenType::Not;
         let mut normalised: Vec<scanner::Token> = collapsed;
@@ -352,7 +358,7 @@ fn parse_stmt(tokens: &Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usiz
         if let Some(article) = &articles[2] {
             right.article = Some(article.lexeme.clone())
         }
-        stmt.right = Some(right)
+        stmt.right = Some(right);
     }
 
     // Rule

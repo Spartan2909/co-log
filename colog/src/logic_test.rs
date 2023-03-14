@@ -9,6 +9,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+/// An answer to a question.
 #[derive(Debug, PartialEq)]
 enum Answer {
     A,
@@ -31,6 +32,7 @@ impl TryFrom<String> for Answer {
     }
 }
 
+/// A quiz question.
 #[derive(Debug)]
 struct Question {
     question: &'static str,
@@ -42,6 +44,7 @@ struct Question {
 }
 
 impl Question {
+    /// Construct a new question from the given parameters.
     const fn new(
         question: &'static str,
         a: &'static str,
@@ -61,6 +64,7 @@ impl Question {
     }
 }
 
+/// A struct representing a record from the database.
 #[derive(sqlx::FromRow, Debug, Clone)]
 pub(crate) struct TestResult {
     num_correct: i64,
@@ -69,12 +73,14 @@ pub(crate) struct TestResult {
     date: chrono::NaiveDateTime,
 }
 
+/// An attribute by which to sort.
 #[derive(Debug, Clone, Copy)]
 enum Attribute {
     NumCorrect,
     Time,
 }
 
+/// The questions used in the quiz.
 const QUESTIONS: [Question; 5] = [
     Question::new(
         "What is the predicate in the following statement: 'John is the brother of Jack.'?",
@@ -132,6 +138,7 @@ X is the sister of Y if X is the sibling of Y and X is female.'?",
     ),
 ];
 
+/// Compares two instances of TestResult on the given attribute.
 fn gt(left: &TestResult, right: &TestResult, attribute: Attribute) -> bool {
     match attribute {
         Attribute::NumCorrect => left.num_correct > right.num_correct,
@@ -139,6 +146,7 @@ fn gt(left: &TestResult, right: &TestResult, attribute: Attribute) -> bool {
     }
 }
 
+/// Sorts a Vec of TestResult 
 fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribute: Attribute) {
     let mut i = start;
     while i < end {
@@ -215,6 +223,7 @@ pub(crate) async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
     Ok(results)
 }
 
+/// Formats a time in seconds into the format 'xh + ym + zs'.
 fn format_time(seconds: f64) -> String {
     let minutes = (seconds / 60.0).floor();
     let seconds = seconds - minutes * 60f64;
