@@ -13,26 +13,29 @@ use text::*;
 
 mod logic_test;
 
+/// The command line arguments.
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// The file to query
     file: Option<String>,
 
+    /// Whether to simply transpile then exit.
     #[arg(short)]
     dry_run: bool,
 }
 
+/// Get tne user's input.
 fn get_user_input() -> String {
     std::io::stdin()
         .lock()
         .lines()
         .nth(0)
+        .expect("no input given")
         .unwrap()
-        .unwrap()
-        .to_lowercase()
 }
 
+/// Create a file, reading the file name from the keyboard if it is not given.
 fn create_file(file_name: Option<String>) -> io::Result<()> {
     let mut chosen_file = "".to_string();
 
@@ -91,7 +94,8 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
     Ok(())
 }
 
-fn get_file_name(file: fs::DirEntry) -> String {
+/// Gets the name of a given file, not including the file extension.
+fn get_file_name(file: &fs::DirEntry) -> String {
     let file_name = file
         .path()
         .file_name()
@@ -104,6 +108,7 @@ fn get_file_name(file: fs::DirEntry) -> String {
     file_name[..dot].to_string()
 }
 
+/// Gets the file that the user wants to select.
 fn get_file() -> Option<String> {
     let project_dirs = ProjectDirs::from("com", "Kleb", "co-log").unwrap();
     let mut user_file_folder = project_dirs.data_dir().to_path_buf();
@@ -117,7 +122,7 @@ fn get_file() -> Option<String> {
     .unwrap();
 
     for user_file in files {
-        println!("- {}", get_file_name(user_file.unwrap()));
+        println!("- {}", get_file_name(&user_file.unwrap()));
     }
 
     println!("");
@@ -146,6 +151,7 @@ fn get_file() -> Option<String> {
     Some(user_file_folder.to_str().unwrap().to_string())
 }
 
+/// Opens a file in the user's preferred text editor, reading the file name from the keyboard if it is not given.
 fn edit_file(file_path: Option<String>) {
     let file_to_edit;
 
@@ -173,6 +179,7 @@ fn edit_file(file_path: Option<String>) {
     }
 }
 
+/// Queries the selected file, reading the file name from the keyboard if it is not given.
 fn query_file(file_path: Option<String>) {
     let file_to_query = match file_path {
         None => match get_file() {

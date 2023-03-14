@@ -1,4 +1,4 @@
-use crate::parser::ast;
+use crate::parser::ast::{self, IdenType};
 
 /// An identifier defined in Co-log, with its article and preposition, and the name used to refer to it in Prolog.
 #[derive(Debug, Clone, PartialEq)]
@@ -46,48 +46,45 @@ impl Identifiers {
         None
     }
 
-    fn add(&mut self, statement: ast::Identifier) -> String {
-        let pl_name;
-        let cl_name;
-
-        if statement.kind == ast::IdenType::Variable {
-            pl_name = "V".to_string() + &(self.highest_variable + 1).to_string();
-            cl_name = statement.lexeme;
-            self.highest_variable += 1
-        } else if statement.kind == ast::IdenType::Pronoun {
-            pl_name = "V".to_string() + &(self.highest_variable + 1).to_string();
-            cl_name = statement.lexeme.to_lowercase();
-            self.highest_variable += 1
-        } else {
-            pl_name = "l".to_string() + &(self.highest_literal + 1).to_string();
-            cl_name = statement.lexeme.to_lowercase();
-            self.highest_literal += 1
-        }
+    /// Adds a new identifier to the array.
+    /// Returns the name used to refer to the identifier in Prolog.
+    fn add(&mut self, identifier: ast::Identifier) -> String {
+        let (pl_name, cl_name) = match identifier.kind {
+            IdenType::Variable | IdenType::Pronoun => {
+                self.highest_variable += 1;
+                (
+                    "V".to_string() + &(self.highest_variable + 1).to_string(),
+                    identifier.lexeme,
+                )
+            }
+            IdenType::Literal => {
+                self.highest_literal += 1;
+                (
+                    "l".to_string() + &(self.highest_literal + 1).to_string(),
+                    identifier.lexeme.to_lowercase(),
+                )
+            }
+        };
 
         self.identifiers.push(Identifier {
             cl_name,
             pl_name: pl_name.clone(),
-            article: statement.article,
-            preposition: statement.preposition,
+            article: identifier.article,
+            preposition: identifier.preposition,
         });
 
         pl_name
     }
 
+    /// Gets the Prolog name of an identifier, creating it if it doesn't exist.
     fn get_or_create(&mut self, identifier: ast::Identifier) -> String {
-        let result;
-
         if identifier.kind == ast::IdenType::Pronoun {
-            return self.add(identifier);
-        }
-
-        if let Some(tmp) = self.get_from_cl_name(identifier.lexeme.clone()) {
-            result = tmp.pl_name
+            self.add(identifier)
+        } else if let Some(identifier) = self.get_from_cl_name(identifier.lexeme.clone()) {
+            identifier.pl_name
         } else {
-            result = self.add(identifier)
+            self.add(identifier)
         }
-
-        result
     }
 }
 
@@ -112,6 +109,7 @@ impl From<Vec<Identifier>> for Identifiers {
     }
 }
 
+/// A query that can be used by the communicator module to query Prolog.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Query {
     pub relationship: String,
@@ -119,10 +117,12 @@ pub struct Query {
     pub right: Option<String>,
 }
 
+/// Checks if a string is lowercase.
 fn is_lowercase(s: &str) -> bool {
     s.to_lowercase() == s
 }
 
+/// Transpiles the clause of a query to Prolog.
 fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (String, Identifiers) {
     let mut output = String::new();
 

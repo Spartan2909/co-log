@@ -71,11 +71,7 @@ fn find_unwrapped_operator(
 
 /// Finds the next closing parenthesis after 'i' and before 'end'.
 /// Returns the index of the closing parenthesis if it is found, and 'end' if it isn't.
-fn find_close(
-    tokens: &Vec<scanner::Token>,
-    mut i: usize,
-    end: usize,
-) -> Option<usize> {
+fn find_close(tokens: &Vec<scanner::Token>, mut i: usize, end: usize) -> Option<usize> {
     while i < end {
         if tokens[i].kind == TokenType::RightParen {
             return Some(i);

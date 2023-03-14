@@ -146,7 +146,7 @@ fn gt(left: &TestResult, right: &TestResult, attribute: Attribute) -> bool {
     }
 }
 
-/// Sorts a Vec of TestResult 
+/// Sorts a Vec of TestResult by the given attribute.
 fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribute: Attribute) {
     let mut i = start;
     while i < end {
@@ -159,6 +159,7 @@ fn insertion_sort(items: &mut Vec<TestResult>, start: usize, end: usize, attribu
     }
 }
 
+/// Saves a result composed from the given parameters to the database.
 pub(crate) async fn save_result(
     num_correct: u8,
     name: &str,
@@ -186,6 +187,7 @@ pub(crate) async fn save_result(
     Ok(())
 }
 
+/// Reads the leaderboard from the database and returns it.
 pub(crate) async fn get_leaderboard() -> Result<Vec<TestResult>, sqlx::Error> {
     dotenv().expect("failed to read environment variables");
 
