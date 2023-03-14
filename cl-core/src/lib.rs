@@ -19,7 +19,7 @@ pub fn remove_path_prefix(s: &str) -> &str {
     }
 }
 
-// Read a file to a string.
+/// Read a given file to a string.
 pub fn read_file(path: &str) -> io::Result<String> {
     let path = Path::new(path);
     let mut file = File::open(&path)?;
