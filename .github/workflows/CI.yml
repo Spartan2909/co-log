@@ -21,6 +21,9 @@ jobs:
 
       - name: Install cargo-swipl
         run: cargo install cargo-swipl
+
+      - name: Set environment variables
+        run: DATABASE_URL=""
         
       - name: Test
         run: cargo swipl test
