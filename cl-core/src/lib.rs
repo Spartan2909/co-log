@@ -1,7 +1,8 @@
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{self, prelude::*},
+    path::Path,
+};
 
 mod communicator;
 mod parser;

@@ -1,4 +1,4 @@
-use super::scanner;
+use crate::scanner::{Token, TokenType};
 
 /// The type of term that an identifier represents.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -17,21 +17,21 @@ pub struct Identifier {
     pub(crate) preposition: Option<String>,
 }
 
-impl TryFrom<&scanner::Token> for Identifier {
+impl TryFrom<&Token> for Identifier {
     type Error = super::ParseError;
 
     /// Convert a Token to an Identifier, and return a ParseError if the conversion fails.
-    fn try_from(value: &scanner::Token) -> Result<Self, super::ParseError> {
-        let kind = if value.kind == scanner::TokenType::Literal {
+    fn try_from(value: &Token) -> Result<Self, super::ParseError> {
+        let kind = if value.kind == TokenType::Literal {
             IdenType::Literal
-        } else if value.kind == scanner::TokenType::Variable {
+        } else if value.kind == TokenType::Variable {
             IdenType::Variable
-        } else if value.kind == scanner::TokenType::Pronoun {
+        } else if value.kind == TokenType::Pronoun {
             IdenType::Pronoun
         } else {
             return Err(super::ParseError {
                 token: value.clone(),
-                expected: Vec::from([scanner::TokenType::Literal, scanner::TokenType::Variable]),
+                expected: Vec::from([TokenType::Literal, TokenType::Variable]),
             });
         };
 

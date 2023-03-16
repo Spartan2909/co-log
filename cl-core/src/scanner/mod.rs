@@ -1,5 +1,5 @@
 /// The type of token that an instance of Token represents.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum TokenType {
     // Single character tokens
     FullStop,
@@ -27,22 +27,26 @@ use TokenType::*;
 
 /// A token of the user's source code.
 /// This represents a single keyword, identifier, or piece of punctuation, or the end of the file.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, Eq, Hash, Clone)]
 pub struct Token {
     pub(crate) kind: TokenType,
     pub(crate) lexeme: String,
     pub(crate) start: usize,
-    pub(crate) length: usize,
+}
+
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.lexeme == other.lexeme
+    }
 }
 
 impl Token {
     /// Construct a new token with the given TokenType, lexeme, start, and length
-    fn new(kind: TokenType, lexeme: &str, start: usize, length: usize) -> Self {
+    fn new(kind: TokenType, lexeme: &str, start: usize) -> Self {
         Token {
             kind,
             lexeme: String::from(lexeme),
             start,
-            length,
         }
     }
 
@@ -94,10 +98,10 @@ pub fn scan(source: String) -> Vec<Token> {
                 i += 1;
                 continue;
             }
-            '(' => tokens.push(Token::new(LeftParen, "(", i, 1)),
-            ')' => tokens.push(Token::new(RightParen, ")", i, 1)),
-            '.' => tokens.push(Token::new(FullStop, ".", i, 1)),
-            '?' => tokens.push(Token::new(QuestionMark, "?", i, 1)),
+            '(' => tokens.push(Token::new(LeftParen, "(", i)),
+            ')' => tokens.push(Token::new(RightParen, ")", i)),
+            '.' => tokens.push(Token::new(FullStop, ".", i)),
+            '?' => tokens.push(Token::new(QuestionMark, "?", i)),
             '#' => {
                 // Comment, skip to next line
                 i = find_newline(source.clone(), i);
@@ -123,9 +127,9 @@ pub fn scan(source: String) -> Vec<Token> {
                         }
                     }
                 };
-                tokens.push(Token::new(kind, &lexeme, i, length));
+                tokens.push(Token::new(kind, &lexeme, i));
 
-                i += length;
+                i += lexeme.len();
                 continue;
             }
             _ => todo!("unrecognised character"),
@@ -134,7 +138,7 @@ pub fn scan(source: String) -> Vec<Token> {
         i += 1;
     }
 
-    tokens.push(Token::new(TokenType::EOF, "", i, 0));
+    tokens.push(Token::new(TokenType::EOF, "", i));
     tokens
 }
 

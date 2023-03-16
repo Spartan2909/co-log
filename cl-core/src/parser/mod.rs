@@ -1,14 +1,12 @@
-use std::error::Error;
-use std::fmt;
+use std::{error::Error, fmt};
 
-use super::scanner;
-use super::scanner::TokenType;
+use super::scanner::{Token, TokenType};
 
 pub mod ast;
 
 #[derive(Debug)]
 pub struct ParseError {
-    token: scanner::Token,
+    token: Token,
     expected: Vec<TokenType>,
 }
 
@@ -31,7 +29,7 @@ impl fmt::Display for ParseError {
 }
 
 impl ParseError {
-    fn new(token: scanner::Token, expected: TokenType) -> Self {
+    fn new(token: Token, expected: TokenType) -> Self {
         Self {
             token,
             expected: Vec::from([expected]),
@@ -43,11 +41,7 @@ impl Error for ParseError {}
 
 /// Finds the next non-parenthesised operator.
 /// Returns the index of the operator if one is found, and None otherwise.
-fn find_unwrapped_operator(
-    tokens: &Vec<scanner::Token>,
-    mut i: usize,
-    next_term: usize,
-) -> Option<usize> {
+fn find_unwrapped_operator(tokens: &Vec<Token>, mut i: usize, next_term: usize) -> Option<usize> {
     let mut open_paren = 0;
 
     while i < tokens.len() && i < next_term {
@@ -71,7 +65,7 @@ fn find_unwrapped_operator(
 
 /// Finds the next closing parenthesis after 'i' and before 'end'.
 /// Returns the index of the closing parenthesis if it is found, and 'end' if it isn't.
-fn find_close(tokens: &Vec<scanner::Token>, mut i: usize, end: usize) -> Option<usize> {
+fn find_close(tokens: &Vec<Token>, mut i: usize, end: usize) -> Option<usize> {
     while i < end {
         if tokens[i].kind == TokenType::RightParen {
             return Some(i);
@@ -85,10 +79,7 @@ fn find_close(tokens: &Vec<scanner::Token>, mut i: usize, end: usize) -> Option<
 
 /// Remove the articles from a vec of tokens, starting at index i and ending at a terminator.
 /// Returns a copy of the tokens with the articles stripped out, and a vec of articles, with positions 0, 1, and 2 referring to the left identifier, the relationship, and the right identifier respectively.
-fn collapse_articles(
-    tokens: &Vec<scanner::Token>,
-    mut i: usize,
-) -> (Vec<scanner::Token>, Vec<Option<scanner::Token>>) {
+fn collapse_articles(tokens: &Vec<Token>, mut i: usize) -> (Vec<Token>, Vec<Option<Token>>) {
     let mut result = Vec::new();
     let mut articles = Vec::new();
     let mut article_found_on_last_iteration = false;
@@ -120,7 +111,7 @@ fn collapse_articles(
 
 /// Check if a token of type 'kind' exists between indexes start and end in tokens, returning false if a token of type 'stop_at' is found.
 fn type_between(
-    tokens: &Vec<scanner::Token>,
+    tokens: &Vec<Token>,
     start: usize,
     end: usize,
     kind: TokenType,
@@ -141,11 +132,7 @@ fn type_between(
 }
 
 /// Parse 'tokens' into a clause, starting from 'i' and ending at 'end'.
-fn parse_clause(
-    tokens: &Vec<scanner::Token>,
-    i: usize,
-    end: usize,
-) -> Result<ast::Clause, ParseError> {
+fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause, ParseError> {
     //dbg!(tokens[i].start);
     //dbg!(&tokens[i..next_term]);
     let (collapsed, articles) = collapse_articles(&tokens, i);
@@ -185,7 +172,7 @@ fn parse_clause(
     // If the clause is of the form `article? identifier verb ‘not’? article? literal (preposition article? identifier)?`
     if collapsed[0].is_identifier() {
         let negated = collapsed[2].kind == TokenType::Not;
-        let mut normalised: Vec<scanner::Token> = collapsed;
+        let mut normalised: Vec<Token> = collapsed;
         if negated {
             normalised.remove(2);
         }
@@ -251,7 +238,7 @@ fn parse_clause(
 }
 
 /// Checks if a vec of tokens contains a token of type 'kind' after 'i' and before a terminator.
-fn tokens_contain(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> bool {
+fn tokens_contain(tokens: &Vec<Token>, mut i: usize, kind: TokenType) -> bool {
     while i < tokens.len() {
         if tokens[i].is_terminator() {
             return false;
@@ -268,7 +255,7 @@ fn tokens_contain(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -
 }
 
 /// Returns a copy of the next terminator along, with its location in 'tokens'.
-fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (&scanner::Token, usize) {
+fn next_terminator(tokens: &Vec<Token>, mut i: usize) -> (&Token, usize) {
     loop {
         if tokens[i].is_terminator() {
             break;
@@ -284,7 +271,7 @@ fn next_terminator(tokens: &Vec<scanner::Token>, mut i: usize) -> (&scanner::Tok
 }
 
 /// Finds the index of the next occurrence of 'kind' in 'tokens'.
-fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usize {
+fn find_next(tokens: &Vec<Token>, mut i: usize, kind: TokenType) -> usize {
     while i < tokens.len() {
         if tokens[i].kind == kind {
             break;
@@ -297,7 +284,7 @@ fn find_next(tokens: &Vec<scanner::Token>, mut i: usize, kind: TokenType) -> usi
 
 /// Parses a sequence of tokens into a statement, starting from 'i'.
 /// Returns the created statement along with the index it stopped at.
-fn parse_stmt(tokens: &Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usize), ParseError> {
+fn parse_stmt(tokens: &Vec<Token>, i: usize) -> Result<(ast::Stmt, usize), ParseError> {
     let (_, stmt_end) = next_terminator(&tokens, i);
 
     let mut binary = type_between(
@@ -368,7 +355,7 @@ fn parse_stmt(tokens: &Vec<scanner::Token>, i: usize) -> Result<(ast::Stmt, usiz
 }
 
 /// Parses a sequence of tokens into an abstract syntax tree.
-pub fn parse(tokens: Vec<scanner::Token>) -> Result<Vec<ast::Stmt>, ParseError> {
+pub fn parse(tokens: Vec<Token>) -> Result<Vec<ast::Stmt>, ParseError> {
     let mut trees: Vec<ast::Stmt> = Vec::new();
 
     let mut i = 0;
