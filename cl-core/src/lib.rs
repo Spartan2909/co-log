@@ -35,9 +35,9 @@ pub fn read_file(path: &str) -> io::Result<String> {
 pub fn transpile(
     source: String,
 ) -> Result<(String, Vec<transpiler::Query>, transpiler::Identifiers), parser::ParseError> {
-    let tokens = scanner::scan(source);
+    let tokens = scanner::scan(&source);
     //dbg!(&tokens);
-    let trees = parser::parse(tokens)?;
+    let trees = parser::parse(&tokens)?;
     //dbg!(&trees);
     Ok(transpiler::transpile(trees, None))
 }

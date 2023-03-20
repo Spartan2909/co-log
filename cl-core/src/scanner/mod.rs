@@ -76,8 +76,9 @@ fn get_word(source: &str, start: usize) -> String {
     String::from(&source[start..end])
 }
 
-/// Finds the next newline after position i in the given source string.
-fn find_newline(source: String, mut i: usize) -> usize {
+/// Finds the next newline in the given source string.
+fn find_newline(source: &str) -> usize {
+    let mut i = 0;
     while &source[i..i + 1] != "\n" {
         i += 1
     }
@@ -86,7 +87,7 @@ fn find_newline(source: String, mut i: usize) -> usize {
 }
 
 /// Scans the given source string, converting it into a series of tokens.
-pub fn scan(source: String) -> Vec<Token> {
+pub fn scan(source: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
 
     let mut i = 0;
@@ -104,7 +105,7 @@ pub fn scan(source: String) -> Vec<Token> {
             '?' => tokens.push(Token::new(QuestionMark, "?", i)),
             '#' => {
                 // Comment, skip to next line
-                i = find_newline(source.clone(), i);
+                i = find_newline(&source[i..]);
                 continue;
             }
             c if c.is_alphabetic() => {

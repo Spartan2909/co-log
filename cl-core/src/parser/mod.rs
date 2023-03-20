@@ -46,7 +46,7 @@ fn find_unwrapped_operator(tokens: &Vec<Token>, mut i: usize, next_term: usize) 
 
     while i < tokens.len() && i < next_term {
         match &tokens[i].kind {
-            kind if kind == &TokenType::Operator => {
+            TokenType::Operator => {
                 //dbg!(open_paren);
                 if open_paren == 0 {
                     return Some(i);
@@ -63,10 +63,11 @@ fn find_unwrapped_operator(tokens: &Vec<Token>, mut i: usize, next_term: usize) 
     None
 }
 
-/// Finds the next closing parenthesis after 'i' and before 'end'.
-/// Returns the index of the closing parenthesis if it is found, and 'end' if it isn't.
-fn find_close(tokens: &Vec<Token>, mut i: usize, end: usize) -> Option<usize> {
-    while i < end {
+/// Finds the next closing parenthesis before 'end'.
+/// Returns the index of the closing parenthesis if it is found, and None if it isn't.
+fn find_close(tokens: &[Token]) -> Option<usize> {
+    let mut i = 0;
+    while i < tokens.len() {
         if tokens[i].kind == TokenType::RightParen {
             return Some(i);
         }
@@ -79,11 +80,12 @@ fn find_close(tokens: &Vec<Token>, mut i: usize, end: usize) -> Option<usize> {
 
 /// Remove the articles from a vec of tokens, starting at index i and ending at a terminator.
 /// Returns a copy of the tokens with the articles stripped out, and a vec of articles, with positions 0, 1, and 2 referring to the left identifier, the relationship, and the right identifier respectively.
-fn collapse_articles(tokens: &Vec<Token>, mut i: usize) -> (Vec<Token>, Vec<Option<Token>>) {
+fn collapse_articles(tokens: &[Token]) -> (Vec<Token>, Vec<Option<Token>>) {
     let mut result = Vec::new();
     let mut articles = Vec::new();
     let mut article_found_on_last_iteration = false;
 
+    let mut i = 0;
     loop {
         if tokens[i].kind == TokenType::Article {
             articles.push(Some(tokens[i].clone()));
@@ -135,7 +137,7 @@ fn type_between(
 fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause, ParseError> {
     //dbg!(tokens[i].start);
     //dbg!(&tokens[i..next_term]);
-    let (collapsed, articles) = collapse_articles(&tokens, i);
+    let (collapsed, articles) = collapse_articles(&tokens[i..]);
 
     // If the clause is of the form `clause op clause`
     if let Some(op_index) = find_unwrapped_operator(&tokens, i, end) {
@@ -158,7 +160,7 @@ fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause
 
     // If the clause is of the form `(clause)`
     if collapsed[0].kind == TokenType::LeftParen {
-        match find_close(&tokens, i, end) {
+        match find_close(&tokens[i..end]) {
             Some(close) => return parse_clause(tokens, i + 1, close),
             None => {
                 return Err(ParseError::new(
@@ -237,8 +239,9 @@ fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause
     })
 }
 
-/// Checks if a vec of tokens contains a token of type 'kind' after 'i' and before a terminator.
-fn tokens_contain(tokens: &Vec<Token>, mut i: usize, kind: TokenType) -> bool {
+/// Checks if a slice of tokens contains a token of type 'kind' before a terminator.
+fn tokens_contain(tokens: &[Token], kind: TokenType) -> bool {
+    let mut i = 0;
     while i < tokens.len() {
         if tokens[i].is_terminator() {
             return false;
@@ -294,7 +297,7 @@ fn parse_stmt(tokens: &Vec<Token>, i: usize) -> Result<(ast::Stmt, usize), Parse
         TokenType::Prepostion,
         TokenType::If,
     );
-    let (collapsed, articles) = collapse_articles(&tokens, i);
+    let (collapsed, articles) = collapse_articles(&tokens[i..]);
     let mut left_index = 0;
     let rel_index = 2;
     let right_index = 4;
@@ -345,7 +348,7 @@ fn parse_stmt(tokens: &Vec<Token>, i: usize) -> Result<(ast::Stmt, usize), Parse
     }
 
     // Rule
-    if tokens_contain(&tokens, i, TokenType::If) {
+    if tokens_contain(&tokens[i..], TokenType::If) {
         stmt.kind = ast::StmtType::Rule;
         let clause_start = find_next(&tokens, i, TokenType::If) + 1;
         stmt.condition = Some(parse_clause(tokens, clause_start, stmt_end)?);
@@ -355,7 +358,7 @@ fn parse_stmt(tokens: &Vec<Token>, i: usize) -> Result<(ast::Stmt, usize), Parse
 }
 
 /// Parses a sequence of tokens into an abstract syntax tree.
-pub fn parse(tokens: Vec<Token>) -> Result<Vec<ast::Stmt>, ParseError> {
+pub fn parse(tokens: &Vec<Token>) -> Result<Vec<ast::Stmt>, ParseError> {
     let mut trees: Vec<ast::Stmt> = Vec::new();
 
     let mut i = 0;
@@ -364,7 +367,7 @@ pub fn parse(tokens: Vec<Token>) -> Result<Vec<ast::Stmt>, ParseError> {
         match tokens[i].kind {
             EOF => break,
             Article | Literal | Variable | Pronoun | Verb => {
-                let (tree, end) = parse_stmt(&tokens, i)?;
+                let (tree, end) = parse_stmt(tokens, i)?;
                 //dbg!(&tree);
                 trees.push(tree);
                 i = end + 1

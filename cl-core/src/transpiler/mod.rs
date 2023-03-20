@@ -33,13 +33,13 @@ impl Identifiers {
     }
 
     /// Given a co-log identifier's name, get its Prolog name.
-    fn get_from_cl_name(&self, cl_name: String) -> Option<Identifier> {
+    fn get_from_cl_name(&self, cl_name: &str) -> Option<&Identifier> {
         for identifier in &self.identifiers {
             if is_lowercase(&identifier.cl_name[0..1])
                 && identifier.cl_name == cl_name.to_lowercase()
                 || !is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name
             {
-                return Some(identifier.clone());
+                return Some(identifier);
             }
         }
 
@@ -48,7 +48,7 @@ impl Identifiers {
 
     /// Adds a new identifier to the array.
     /// Returns the name used to refer to the identifier in Prolog.
-    fn add(&mut self, identifier: ast::Identifier) -> String {
+    fn add(&mut self, identifier: ast::Identifier) -> &str {
         let (pl_name, cl_name) = match identifier.kind {
             IdenType::Variable | IdenType::Pronoun => {
                 self.highest_variable += 1;
@@ -68,22 +68,22 @@ impl Identifiers {
 
         self.identifiers.push(Identifier {
             cl_name,
-            pl_name: pl_name.clone(),
+            pl_name: pl_name,
             article: identifier.article,
             preposition: identifier.preposition,
         });
 
-        pl_name
+        &self.identifiers.last().unwrap().pl_name
     }
 
     /// Gets the Prolog name of an identifier, creating it if it doesn't exist.
     fn get_or_create(&mut self, identifier: ast::Identifier) -> String {
         if identifier.kind == ast::IdenType::Pronoun {
-            self.add(identifier)
-        } else if let Some(identifier) = self.get_from_cl_name(identifier.lexeme.clone()) {
-            identifier.pl_name
+            self.add(identifier).to_string()
+        } else if let Some(identifier) = self.get_from_cl_name(&identifier.lexeme) {
+            identifier.pl_name.clone()
         } else {
-            self.add(identifier)
+            self.add(identifier).to_string()
         }
     }
 }
@@ -123,7 +123,7 @@ fn is_lowercase(s: &str) -> bool {
 }
 
 /// Transpiles the clause of a query to Prolog.
-fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (String, Identifiers) {
+fn transpile_clause(clause: ast::Clause, identifiers: &mut Identifiers) -> String {
     let mut output = String::new();
 
     match clause {
@@ -132,15 +132,15 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
             left,
             right,
         } => {
-            let (left, identifiers) = transpile_clause(*left, identifiers);
-            let (right, identifiers) = transpile_clause(*right, identifiers);
+            let left = transpile_clause(*left, identifiers);
+            let right = transpile_clause(*right, identifiers);
 
             output = match op_type {
                 ast::OperatorType::And => format!("({left}, {right})"),
                 ast::OperatorType::Or => format!("({left}; {right})"),
             };
 
-            (output, identifiers)
+            output
         }
         ast::Clause::Simple {
             negated,
@@ -159,7 +159,7 @@ fn transpile_clause(clause: ast::Clause, mut identifiers: Identifiers) -> (Strin
             }
             output += ")";
 
-            (output, identifiers)
+            output
         }
     }
 }
@@ -181,10 +181,10 @@ pub fn transpile(
     for tree in trees {
         match tree.kind {
             ast::StmtType::Query => {
-                let relationship = identifiers.get_or_create(tree.relationship);
-                let left = identifiers.get_or_create(tree.left);
+                let relationship = identifiers.get_or_create(tree.relationship).to_string();
+                let left = identifiers.get_or_create(tree.left).to_string();
                 let right = match tree.right {
-                    Some(iden) => Some(identifiers.get_or_create(iden)),
+                    Some(iden) => Some(identifiers.get_or_create(iden).to_string()),
                     None => None,
                 };
 
@@ -204,9 +204,7 @@ pub fn transpile(
 
                 if tree.kind == ast::StmtType::Rule {
                     output += " :- ";
-                    let clause;
-                    (clause, identifiers) = transpile_clause(tree.condition.unwrap(), identifiers);
-                    output += &clause;
+                    output += &transpile_clause(tree.condition.unwrap(), &mut identifiers);
                 }
 
                 output += ".\n";

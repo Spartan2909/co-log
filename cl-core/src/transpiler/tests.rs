@@ -2,10 +2,7 @@ use super::{Identifier, Identifiers, Query};
 use crate::{parser, scanner};
 
 fn transpile(source: &str) -> (String, Vec<Query>, Identifiers) {
-    super::transpile(
-        parser::parse(scanner::scan(source.to_string())).unwrap(),
-        None,
-    )
+    super::transpile(parser::parse(&scanner::scan(source)).unwrap(), None)
 }
 
 #[test]
