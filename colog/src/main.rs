@@ -191,21 +191,23 @@ fn query_file(file_path: Option<String>) {
 
     let colog = fs::read_to_string(file_to_query).unwrap();
 
-    let pl = cl_core::transpile(colog).unwrap();
+    let (pl, _, identifiers) = cl_core::transpile(colog, None).unwrap();
 
     let mut tmp_location = env::current_exe().expect("failed to get location of executable");
     tmp_location.pop();
     tmp_location.push("temp.pl");
 
-    fs::write(tmp_location.clone(), pl.0).unwrap();
+    fs::write(tmp_location.clone(), pl).unwrap();
 
+    /*
     let context = cl_core::start_prolog(tmp_location.to_str().unwrap()).unwrap();
 
     println!("Enter your queries, or enter ':exit' to finish.");
 
     let mut input = get_user_input();
     while &input != ":exit" {
-        let query = cl_core::transpile_query(input.clone()).unwrap();
+        let query;
+        (query, identifiers) = cl_core::transpile_query(input.clone(), identifiers).unwrap();
 
         let succeeded = cl_core::query_prolog(&context, query).unwrap();
 
@@ -219,6 +221,22 @@ fn query_file(file_path: Option<String>) {
     }
 
     eprintln!("error: implementation not finished")
+    */
+
+    println!(
+        "The generated code can be found at {}. The following table can be used to translate Prolog's responses:",
+        tmp_location.display(),
+    );
+
+    println!("{:<15} | {:<15}", "Co-log name", "Prolog name");
+    println!("{}", "_".repeat(16) + "|" + &"_".repeat(16));
+    for identifier in identifiers.identifiers() {
+        if identifier.cl_name() == "eq" {
+            println!("{:<15} | {:<15}", "is", "eq");
+        } else {
+            println!("{:<15} | {:<15}", identifier.cl_name(), identifier.pl_name());
+        }
+    }
 }
 
 #[tokio::main]
@@ -227,7 +245,7 @@ async fn main() -> Result<(), sqlx::Error> {
 
     if let Some(file) = args.file {
         if args.dry_run {
-            cl_core::transpile(cl_core::read_file(&file).unwrap()).unwrap();
+            cl_core::transpile(cl_core::read_file(&file).unwrap(), None).unwrap();
         } else {
             query_file(Some(file));
         }

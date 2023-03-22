@@ -2,11 +2,21 @@ use crate::parser::ast::{self, IdenType};
 
 /// An identifier defined in Co-log, with its article and preposition, and the name used to refer to it in Prolog.
 #[derive(Debug, Clone, PartialEq)]
-struct Identifier {
+pub struct Identifier {
     cl_name: String,
     pl_name: String,
     article: Option<String>,
     preposition: Option<String>,
+}
+
+impl Identifier {
+    pub fn cl_name(&self) -> &str {
+        &self.cl_name
+    }
+
+    pub fn pl_name(&self) -> &str {
+        &self.pl_name
+    }
 }
 
 /// A set of identifiers defined in a co-log program.
@@ -85,6 +95,10 @@ impl Identifiers {
         } else {
             self.add(identifier).to_string()
         }
+    }
+
+    pub fn identifiers(&self) -> &Vec<Identifier> {
+        &self.identifiers
     }
 }
 
