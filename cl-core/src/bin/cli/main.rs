@@ -252,11 +252,15 @@ async fn main() -> Result<(), sqlx::Error> {
 
         Ok(())
     } else {
+        let _ = io::stdout().flush();
         print!("{MAIN_MENU_TEXT}");
         print!("> ");
         let _ = io::stdout().flush();
         loop {
             match get_user_input().to_lowercase().as_str() {
+                "i" => {
+                    print!("{INTRO_TEXT}");
+                }
                 "c" => {
                     create_file(None).unwrap();
                     print!("{MAIN_MENU_TEXT}");
