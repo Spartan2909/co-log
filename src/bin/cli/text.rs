@@ -2,6 +2,8 @@ pub const MAIN_MENU_TEXT: &str = "Co-Log
 
 Welcome to Co-Log! Please choose an option:
 
+I - Show introduction
+
 C - Create file
 
 E - Edit file
