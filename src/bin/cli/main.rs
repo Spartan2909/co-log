@@ -1,4 +1,4 @@
-use cl_core;
+use co_log;
 use clap::Parser;
 use directories::ProjectDirs;
 use scrawl;
@@ -51,7 +51,7 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
 
     match file_name {
         None => {
-            let mut user_files = fs::read_dir(cl_core::remove_path_prefix(
+            let mut user_files = fs::read_dir(co_log::remove_path_prefix(
                 user_file_folder.to_str().unwrap(),
             ))
             .unwrap();
@@ -116,7 +116,7 @@ fn get_file() -> Option<String> {
 
     print!("{EDIT_FILE_TEXT}");
 
-    let files = fs::read_dir(cl_core::remove_path_prefix(
+    let files = fs::read_dir(co_log::remove_path_prefix(
         user_file_folder.to_str().unwrap(),
     ))
     .unwrap();
@@ -127,7 +127,7 @@ fn get_file() -> Option<String> {
 
     println!("");
 
-    let mut files = fs::read_dir(cl_core::remove_path_prefix(
+    let mut files = fs::read_dir(co_log::remove_path_prefix(
         user_file_folder.to_str().unwrap(),
     ))
     .unwrap();
@@ -191,7 +191,7 @@ fn query_file(file_path: Option<String>) {
 
     let colog = fs::read_to_string(file_to_query).unwrap();
 
-    let (pl, _, identifiers) = cl_core::transpile(colog, None).unwrap();
+    let (pl, _, identifiers) = co_log::transpile(colog, None).unwrap();
 
     let mut tmp_location = env::current_exe().expect("failed to get location of executable");
     tmp_location.pop();
@@ -200,16 +200,16 @@ fn query_file(file_path: Option<String>) {
     fs::write(tmp_location.clone(), pl).unwrap();
 
     /*
-    let context = cl_core::start_prolog(tmp_location.to_str().unwrap()).unwrap();
+    let context = co_log::start_prolog(tmp_location.to_str().unwrap()).unwrap();
 
     println!("Enter your queries, or enter ':exit' to finish.");
 
     let mut input = get_user_input();
     while &input != ":exit" {
         let query;
-        (query, identifiers) = cl_core::transpile_query(input.clone(), identifiers).unwrap();
+        (query, identifiers) = co_log::transpile_query(input.clone(), identifiers).unwrap();
 
-        let succeeded = cl_core::query_prolog(&context, query).unwrap();
+        let succeeded = co_log::query_prolog(&context, query).unwrap();
 
         if succeeded {
             println!("Yes");
@@ -245,7 +245,7 @@ async fn main() -> Result<(), sqlx::Error> {
 
     if let Some(file) = args.file {
         if args.dry_run {
-            cl_core::transpile(cl_core::read_file(&file).unwrap(), None).unwrap();
+            co_log::transpile(co_log::read_file(&file).unwrap(), None).unwrap();
         } else {
             query_file(Some(file));
         }

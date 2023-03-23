@@ -159,20 +159,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cl_core"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "clap 4.1.4",
- "directories",
- "dotenvy",
- "scrawl",
- "sqlx",
- "swipl",
- "tokio",
-]
-
-[[package]]
 name = "clang-sys"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -236,6 +222,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "co-log"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "clap 4.1.4",
+ "directories",
+ "dotenvy",
+ "scrawl",
+ "sqlx",
+ "swipl",
+ "tokio",
+]
+
+[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -243,20 +243,6 @@ checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
 dependencies = [
  "termcolor",
  "unicode-width",
-]
-
-[[package]]
-name = "colog"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "cl_core",
- "clap 4.1.4",
- "directories",
- "dotenvy",
- "scrawl",
- "sqlx",
- "tokio",
 ]
 
 [[package]]

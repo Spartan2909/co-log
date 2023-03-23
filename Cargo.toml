@@ -1,5 +1,23 @@
-[workspace]
-members = ["cl-core", "colog"]
+[package]
+name = "co-log"
+version = "0.1.0"
+edition = "2021"
+authors = ["Caleb Robson"]
+default-run = "cli"
 
-[workspace.package]
-authors = ["Caleb Robson <robson.caleb.299@gmail.com>"]
+[dependencies]
+swipl = "0.3"
+directories = { version = "4.0", optional = true }
+scrawl = { version = "2.0", optional = true }
+clap = { version = "4.1", features = ["derive"], optional = true }
+sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "sqlite", "macros", "chrono"], optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
+chrono = { version = "0.4", optional = true }
+dotenvy = { version = "0.15", optional = true }
+
+[features]
+bin = ["dep:directories", "dep:scrawl", "dep:clap", "dep:sqlx", "dep:tokio", "dep:chrono", "dep:dotenvy"]
+
+[[bin]]
+name = "cli"
+required-features = ["bin"]
