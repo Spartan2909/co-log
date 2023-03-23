@@ -38,7 +38,7 @@ pub fn transpile(
     source: String,
     identifiers: Option<Identifiers>,
 ) -> Result<(String, Vec<transpiler::Query>, transpiler::Identifiers), parser::ParseError> {
-    let tokens = scanner::scan(&source);
+    let tokens = scanner::scan(&source)?;
     //dbg!(&tokens);
     let trees = parser::parse(&tokens)?;
     //dbg!(&trees);
@@ -46,7 +46,10 @@ pub fn transpile(
 }
 
 /// Transpiles a given source string to Prolog, returning a single query.
-pub fn transpile_query(source: String, identifiers: Option<Identifiers>,) -> Result<(transpiler::Query, Identifiers), parser::ParseError> {
+pub fn transpile_query(
+    source: String,
+    identifiers: Option<Identifiers>,
+) -> Result<(transpiler::Query, Identifiers), parser::ParseError> {
     let (_, queries, identifiers) = transpile(source, identifiers)?;
 
     Ok((queries[0].clone(), identifiers))

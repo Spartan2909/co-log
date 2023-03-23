@@ -6,7 +6,7 @@ use crate::scanner::scan;
 use std::collections::HashSet;
 
 fn test_trees_equal(left: &str, right: HashSet<ast::Stmt>) {
-    let left_tmp = parse(&scan(left)).unwrap();
+    let left_tmp = parse(&scan(left).unwrap()).unwrap();
     assert_eq!(HashSet::from_iter(left_tmp), right)
 }
 

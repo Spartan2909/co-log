@@ -12,17 +12,23 @@ pub struct ParseError {
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.expected.len() == 1 {
+        if self.expected.len() == 0 {
+            write!(
+                f,
+                "found unexpected token {:?}",
+                self.token.lexeme,
+            )
+        } else if self.expected.len() == 1 {
             write!(
                 f,
                 "expected {:?}, found {:?}",
-                self.expected[0], self.token.kind
+                self.expected[0], self.token.kind,
             )
         } else {
             write!(
                 f,
                 "expected one of {:?}, found {:?}",
-                self.expected, self.token.kind
+                self.expected, self.token.kind,
             )
         }
     }
@@ -34,6 +40,12 @@ impl ParseError {
             token,
             expected: Vec::from([expected]),
         }
+    }
+}
+
+impl From<Token> for ParseError {
+    fn from(value: Token) -> Self {
+        Self { token: value, expected: vec![] }
     }
 }
 

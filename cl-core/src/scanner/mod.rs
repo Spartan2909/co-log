@@ -1,3 +1,5 @@
+use super::parser::ParseError;
+
 /// The type of token that an instance of Token represents.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum TokenType {
@@ -21,6 +23,8 @@ pub enum TokenType {
     Variable,
 
     EOF,
+
+    Error,
 }
 
 use TokenType::*;
@@ -87,7 +91,7 @@ fn find_newline(source: &str) -> usize {
 }
 
 /// Scans the given source string, converting it into a series of tokens.
-pub fn scan(source: &str) -> Vec<Token> {
+pub fn scan(source: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
 
     let mut i = 0;
@@ -133,14 +137,14 @@ pub fn scan(source: &str) -> Vec<Token> {
                 i += lexeme.len();
                 continue;
             }
-            _ => todo!("unrecognised character"),
+            _ => Err(ParseError::from(Token::new(TokenType::Error, &c.to_string(), i)))?,
         }
 
         i += 1;
     }
 
     tokens.push(Token::new(TokenType::EOF, "", i));
-    tokens
+    Ok(tokens)
 }
 
 #[cfg(test)]
