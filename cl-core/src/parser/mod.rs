@@ -15,7 +15,7 @@ impl fmt::Display for ParseError {
         if self.expected.len() == 0 {
             write!(
                 f,
-                "found unexpected token {:?}",
+                "unexpected character: {:?}",
                 self.token.lexeme,
             )
         } else if self.expected.len() == 1 {
