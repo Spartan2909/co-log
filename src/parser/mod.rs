@@ -53,10 +53,11 @@ impl Error for ParseError {}
 
 /// Finds the next non-parenthesised operator.
 /// Returns the index of the operator if one is found, and None otherwise.
-fn find_unwrapped_operator(tokens: &Vec<Token>, mut i: usize, next_term: usize) -> Option<usize> {
+fn find_unwrapped_operator(tokens: &[Token]) -> Option<usize> {
     let mut open_paren = 0;
+    let mut i = 0;
 
-    while i < tokens.len() && i < next_term {
+    while i < tokens.len() {
         match &tokens[i].kind {
             TokenType::Operator => {
                 //dbg!(open_paren);
@@ -125,15 +126,13 @@ fn collapse_articles(tokens: &[Token]) -> (Vec<Token>, Vec<Option<Token>>) {
 
 /// Check if a token of type 'kind' exists between indexes start and end in tokens, returning false if a token of type 'stop_at' is found.
 fn type_between(
-    tokens: &Vec<Token>,
-    start: usize,
-    end: usize,
+    tokens: &[Token],
     kind: TokenType,
     stop_at: TokenType,
 ) -> bool {
-    let mut i = start;
+    let mut i = 0;
 
-    while i < tokens.len() && i < end {
+    while i < tokens.len() {
         if tokens[i].kind == kind {
             return true;
         } else if tokens[i].kind == stop_at || tokens[i].is_terminator() {
@@ -146,16 +145,18 @@ fn type_between(
 }
 
 /// Parse 'tokens' into a clause, starting from 'i' and ending at 'end'.
-fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause, ParseError> {
+fn parse_clause(tokens: &[Token]) -> Result<ast::Clause, ParseError> {
     //dbg!(tokens[i].start);
-    //dbg!(&tokens[i..next_term]);
-    let (collapsed, articles) = collapse_articles(&tokens[i..]);
+    let (collapsed, articles) = collapse_articles(tokens);
 
     // If the clause is of the form `clause op clause`
-    if let Some(op_index) = find_unwrapped_operator(&tokens, i, end) {
+    if let Some(op_index) = find_unwrapped_operator(tokens) {
         let operator = &tokens[op_index];
-        let left = Box::new(parse_clause(tokens, i, op_index)?);
-        let right = Box::new(parse_clause(tokens, op_index + 1, end)?);
+        //println!("found operator {:?}", operator);
+
+        //dbg!(&tokens[i..op_index], &tokens[(op_index + 1)..end]);
+        let left = Box::new(parse_clause(&tokens[..op_index])?);
+        let right = Box::new(parse_clause(&tokens[op_index + 1..])?);
 
         let op_type = if operator.lexeme.to_lowercase() == "and" {
             ast::OperatorType::And
@@ -172,19 +173,23 @@ fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause
 
     // If the clause is of the form `(clause)`
     if collapsed[0].kind == TokenType::LeftParen {
-        match find_close(&tokens[i..end]) {
-            Some(close) => return parse_clause(tokens, i + 1, close),
+        match find_close(tokens) {
+            Some(close) => {
+                return parse_clause(&tokens[1..close]);
+            },
             None => {
                 return Err(ParseError::new(
-                    collapsed[end].clone(),
+                    collapsed.last().unwrap().clone(),
                     TokenType::RightParen,
-                ))
+                ));
             }
         }
     }
 
     // If the clause is of the form `article? identifier verb ‘not’? article? literal (preposition article? identifier)?`
     if collapsed[0].is_identifier() {
+        //println!("found simple");
+        //dbg!(&tokens[i..end]);
         let negated = collapsed[2].kind == TokenType::Not;
         let mut normalised: Vec<Token> = collapsed;
         if negated {
@@ -193,8 +198,6 @@ fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause
 
         let binary = type_between(
             &normalised,
-            0,
-            end,
             TokenType::Prepostion,
             TokenType::FullStop,
         );
@@ -233,7 +236,7 @@ fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause
         let clause = ast::Clause::Simple {
             negated,
             left,
-            relationship: relationship,
+            relationship,
             right,
         };
 
@@ -241,7 +244,7 @@ fn parse_clause(tokens: &Vec<Token>, i: usize, end: usize) -> Result<ast::Clause
     }
 
     Err(ParseError {
-        token: collapsed[i].clone(),
+        token: collapsed[0].clone(),
         expected: Vec::from([
             TokenType::LeftParen,
             TokenType::Article,
@@ -270,7 +273,8 @@ fn tokens_contain(tokens: &[Token], kind: TokenType) -> bool {
 }
 
 /// Returns a copy of the next terminator along, with its location in 'tokens'.
-fn next_terminator(tokens: &Vec<Token>, mut i: usize) -> (&Token, usize) {
+fn next_terminator(tokens: &[Token]) -> (&Token, usize) {
+    let mut i = 0;
     loop {
         if tokens[i].is_terminator() {
             break;
@@ -286,7 +290,8 @@ fn next_terminator(tokens: &Vec<Token>, mut i: usize) -> (&Token, usize) {
 }
 
 /// Finds the index of the next occurrence of 'kind' in 'tokens'.
-fn find_next(tokens: &Vec<Token>, mut i: usize, kind: TokenType) -> usize {
+fn find_next(tokens: &[Token], kind: TokenType) -> usize {
+    let mut i = 0;
     while i < tokens.len() {
         if tokens[i].kind == kind {
             break;
@@ -299,23 +304,21 @@ fn find_next(tokens: &Vec<Token>, mut i: usize, kind: TokenType) -> usize {
 
 /// Parses a sequence of tokens into a statement, starting from 'i'.
 /// Returns the created statement along with the index it stopped at.
-fn parse_stmt(tokens: &Vec<Token>, i: usize) -> Result<(ast::Stmt, usize), ParseError> {
-    let (_, stmt_end) = next_terminator(&tokens, i);
+fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
+    let (_, stmt_end) = next_terminator(&tokens);
 
     let mut binary = type_between(
-        &tokens,
-        i,
-        tokens.len(),
+        tokens,
         TokenType::Prepostion,
         TokenType::If,
     );
-    let (collapsed, articles) = collapse_articles(&tokens[i..]);
+    let (collapsed, articles) = collapse_articles(tokens);
     let mut left_index = 0;
     let rel_index = 2;
     let right_index = 4;
     let mut kind = ast::StmtType::Fact;
 
-    let (next_term, _) = next_terminator(&collapsed, 0);
+    let (next_term, _) = next_terminator(&collapsed);
     if next_term.kind == TokenType::QuestionMark {
         match collapsed[0].kind {
             TokenType::Verb => {
@@ -360,17 +363,17 @@ fn parse_stmt(tokens: &Vec<Token>, i: usize) -> Result<(ast::Stmt, usize), Parse
     }
 
     // Rule
-    if tokens_contain(&tokens[i..], TokenType::If) {
+    if tokens_contain(&tokens, TokenType::If) {
         stmt.kind = ast::StmtType::Rule;
-        let clause_start = find_next(&tokens, i, TokenType::If) + 1;
-        stmt.condition = Some(parse_clause(tokens, clause_start, stmt_end)?);
+        let clause_start = find_next(&tokens, TokenType::If) + 1;
+        stmt.condition = Some(parse_clause(&tokens[clause_start..stmt_end])?);
     }
 
     Ok((stmt, stmt_end))
 }
 
 /// Parses a sequence of tokens into an abstract syntax tree.
-pub fn parse(tokens: &Vec<Token>) -> Result<Vec<ast::Stmt>, ParseError> {
+pub fn parse(tokens: &[Token]) -> Result<Vec<ast::Stmt>, ParseError> {
     let mut trees: Vec<ast::Stmt> = Vec::new();
 
     let mut i = 0;
@@ -379,10 +382,10 @@ pub fn parse(tokens: &Vec<Token>) -> Result<Vec<ast::Stmt>, ParseError> {
         match tokens[i].kind {
             EOF => break,
             Article | Literal | Variable | Pronoun | Verb => {
-                let (tree, end) = parse_stmt(tokens, i)?;
+                let (tree, end) = parse_stmt(&tokens[i..])?;
                 //dbg!(&tree);
                 trees.push(tree);
-                i = end + 1
+                i += end + 1
             }
             _ => {
                 return Err(ParseError {

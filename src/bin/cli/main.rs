@@ -239,6 +239,17 @@ fn query_file(file_path: Option<String>) {
     }
 }
 
+fn display_menu() {
+    print!("{MAIN_MENU_TEXT}");
+    print!("> ");
+    let _ = io::stdout().flush();
+}
+
+fn wait_for_input() {
+    println!("\nPress enter to continue...");
+    get_user_input();
+}
+
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
     let args = Args::parse();
@@ -253,29 +264,30 @@ async fn main() -> Result<(), sqlx::Error> {
         Ok(())
     } else {
         let _ = io::stdout().flush();
-        print!("{MAIN_MENU_TEXT}");
-        print!("> ");
-        let _ = io::stdout().flush();
+        display_menu();
         loop {
             match get_user_input().to_lowercase().as_str() {
                 "i" => {
                     print!("{INTRO_TEXT}");
+                    wait_for_input();
+                    display_menu();
                 }
                 "c" => {
                     create_file(None).unwrap();
-                    print!("{MAIN_MENU_TEXT}");
+                    display_menu();
                 }
                 "e" => {
                     edit_file(None);
-                    print!("{MAIN_MENU_TEXT}");
+                    display_menu();
                 }
                 "q" => {
                     query_file(None);
-                    print!("{MAIN_MENU_TEXT}");
+                    display_menu();
                 }
                 "t" => {
                     logic_test::test().await?;
-                    print!("{MAIN_MENU_TEXT}");
+                    wait_for_input();
+                    display_menu();
                 }
                 "x" => return Ok(()),
                 _ => println!("Unrecognised input"),

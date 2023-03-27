@@ -63,14 +63,14 @@ impl Identifiers {
             IdenType::Variable | IdenType::Pronoun => {
                 self.highest_variable += 1;
                 (
-                    "V".to_string() + &(self.highest_variable + 1).to_string(),
+                    "V".to_string() + &(self.highest_variable).to_string(),
                     identifier.lexeme,
                 )
             }
             IdenType::Literal => {
                 self.highest_literal += 1;
                 (
-                    "l".to_string() + &(self.highest_literal + 1).to_string(),
+                    "l".to_string() + &(self.highest_literal).to_string(),
                     identifier.lexeme.to_lowercase(),
                 )
             }

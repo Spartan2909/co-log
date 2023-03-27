@@ -3,7 +3,13 @@ use std::collections::HashSet;
 use super::*;
 
 fn test_tokens_equal(left: &str, right: HashSet<Token>) {
-    assert_eq!(HashSet::from_iter(scan(left).unwrap()), right)
+    let left = scan(left).unwrap();
+    for token in &left {
+        assert!(right.contains(token));
+    }
+    for token in &right {
+        assert!(left.contains(token));
+    }
 }
 
 #[test]
