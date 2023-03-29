@@ -137,7 +137,11 @@ pub fn scan(source: &str) -> Result<Vec<Token>, ParseError> {
                 i += lexeme.len();
                 continue;
             }
-            _ => Err(ParseError::from(Token::new(TokenType::Error, &c.to_string(), i)))?,
+            _ => Err(ParseError::from(Token::new(
+                TokenType::Error,
+                &c.to_string(),
+                i,
+            )))?,
         }
 
         i += 1;

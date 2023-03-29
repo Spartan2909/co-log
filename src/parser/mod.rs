@@ -13,11 +13,7 @@ pub struct ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.expected.len() == 0 {
-            write!(
-                f,
-                "unexpected character: {:?}",
-                self.token.lexeme,
-            )
+            write!(f, "unexpected character: {:?}", self.token.lexeme,)
         } else if self.expected.len() == 1 {
             write!(
                 f,
@@ -45,7 +41,10 @@ impl ParseError {
 
 impl From<Token> for ParseError {
     fn from(value: Token) -> Self {
-        Self { token: value, expected: vec![] }
+        Self {
+            token: value,
+            expected: vec![],
+        }
     }
 }
 
@@ -125,11 +124,7 @@ fn collapse_articles(tokens: &[Token]) -> (Vec<Token>, Vec<Option<Token>>) {
 }
 
 /// Check if a token of type 'kind' exists between indexes start and end in tokens, returning false if a token of type 'stop_at' is found.
-fn type_between(
-    tokens: &[Token],
-    kind: TokenType,
-    stop_at: TokenType,
-) -> bool {
+fn type_between(tokens: &[Token], kind: TokenType, stop_at: TokenType) -> bool {
     let mut i = 0;
 
     while i < tokens.len() {
@@ -176,7 +171,7 @@ fn parse_clause(tokens: &[Token]) -> Result<ast::Clause, ParseError> {
         match find_close(tokens) {
             Some(close) => {
                 return parse_clause(&tokens[1..close]);
-            },
+            }
             None => {
                 return Err(ParseError::new(
                     collapsed.last().unwrap().clone(),
@@ -196,11 +191,7 @@ fn parse_clause(tokens: &[Token]) -> Result<ast::Clause, ParseError> {
             normalised.remove(2);
         }
 
-        let binary = type_between(
-            &normalised,
-            TokenType::Prepostion,
-            TokenType::FullStop,
-        );
+        let binary = type_between(&normalised, TokenType::Prepostion, TokenType::FullStop);
 
         let mut left = ast::Identifier::try_from(&normalised[0])?;
         if let Some(article) = &articles[0] {
@@ -307,11 +298,7 @@ fn find_next(tokens: &[Token], kind: TokenType) -> usize {
 fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
     let (_, stmt_end) = next_terminator(&tokens);
 
-    let mut binary = type_between(
-        tokens,
-        TokenType::Prepostion,
-        TokenType::If,
-    );
+    let mut binary = type_between(tokens, TokenType::Prepostion, TokenType::If);
     let (collapsed, articles) = collapse_articles(tokens);
     let mut left_index = 0;
     let rel_index = 2;
