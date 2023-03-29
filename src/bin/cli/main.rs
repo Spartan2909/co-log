@@ -1,5 +1,5 @@
-use co_log;
 use clap::Parser;
+use co_log;
 use directories::ProjectDirs;
 use scrawl;
 use std::{
@@ -27,12 +27,11 @@ struct Args {
 
 /// Get tne user's input.
 fn get_user_input() -> String {
-    std::io::stdin()
-        .lock()
-        .lines()
-        .nth(0)
-        .expect("no input given")
-        .unwrap()
+    loop {
+        if let Some(line) = io::stdin().lock().lines().nth(0) {
+            break line
+        }
+    }.expect("error reading from stdin")
 }
 
 /// Create a file, reading the file name from the keyboard if it is not given.
@@ -197,7 +196,7 @@ fn query_file(file_path: Option<String>) {
     tmp_location.pop();
     tmp_location.push("temp.pl");
 
-    fs::write(tmp_location.clone(), pl).unwrap();
+    fs::write(&tmp_location, pl).unwrap();
 
     /*
     let context = co_log::start_prolog(tmp_location.to_str().unwrap()).unwrap();
@@ -234,7 +233,11 @@ fn query_file(file_path: Option<String>) {
         if identifier.cl_name() == "eq" {
             println!("{:<15} | {:<15}", "is", "eq");
         } else {
-            println!("{:<15} | {:<15}", identifier.cl_name(), identifier.pl_name());
+            println!(
+                "{:<15} | {:<15}",
+                identifier.cl_name(),
+                identifier.pl_name()
+            );
         }
     }
 }
@@ -251,7 +254,7 @@ fn wait_for_input() {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() {
     let args = Args::parse();
 
     if let Some(file) = args.file {
@@ -260,8 +263,6 @@ async fn main() -> Result<(), sqlx::Error> {
         } else {
             query_file(Some(file));
         }
-
-        Ok(())
     } else {
         let _ = io::stdout().flush();
         display_menu();
@@ -285,12 +286,18 @@ async fn main() -> Result<(), sqlx::Error> {
                     display_menu();
                 }
                 "t" => {
-                    logic_test::test().await?;
+                    if let Err(err) = logic_test::test().await {
+                        eprintln!("{err}");
+                    }
                     wait_for_input();
                     display_menu();
                 }
-                "x" => return Ok(()),
-                _ => println!("Unrecognised input"),
+                "x" => return,
+                _ => {
+                    println!("Unrecognised input");
+                    print!("> ");
+                    let _ = io::stdout().flush();
+                }
             }
         }
     }
