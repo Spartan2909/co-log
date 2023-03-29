@@ -1,3 +1,5 @@
+use std::fmt;
+
 use super::parser::ParseError;
 
 /// The type of token that an instance of Token represents.
@@ -27,6 +29,30 @@ pub enum TokenType {
     Error,
 }
 
+impl fmt::Display for TokenType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let text = match self {
+            FullStop => "full stop",
+            QuestionMark => "question mark",
+            LeftParen => "left parenthesis",
+            RightParen => "right parenthesis",
+            Article => "article",
+            Operator => "operator",
+            Prepostion => "preposition",
+            Verb => "verb",
+            If => "'if'",
+            Pronoun => "pronoun",
+            Not => "'not'",
+            Literal => "literal",
+            Variable => "variable",
+            EOF => "end of file",
+            Error => "error",
+        };
+
+        write!(f, "{text}")
+    }
+}
+
 use TokenType::*;
 
 /// A token of the user's source code.
@@ -36,6 +62,16 @@ pub struct Token {
     pub(crate) kind: TokenType,
     pub(crate) lexeme: String,
     pub(crate) start: usize,
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.lexeme.is_empty() {
+            write!(f, "{}", self.kind)
+        } else {
+            write!(f, "{}", self.lexeme)
+        }
+    }
 }
 
 impl PartialEq for Token {

@@ -131,6 +131,8 @@ fn get_file() -> Option<String> {
     ))
     .unwrap();
 
+    print!("> ");
+    let _ = io::stdout().flush();
     let mut user_file = get_user_input();
     while !files.any(|f| {
         f.unwrap().path().file_name().unwrap().to_str() == Some(&(user_file.clone() + ".cl"))
@@ -190,7 +192,14 @@ fn query_file(file_path: Option<String>) {
 
     let colog = fs::read_to_string(file_to_query).unwrap();
 
-    let (pl, _, identifiers) = co_log::transpile(colog, None).unwrap();
+    let (pl, identifiers) = match co_log::transpile(colog, None) {
+        Ok((pl, _, identifiers)) => (pl, identifiers),
+        Err(err) => {
+            eprintln!("Error: {err}");
+            wait_for_input();
+            return;
+        }
+    };
 
     let mut tmp_location = env::current_exe().expect("failed to get location of executable");
     tmp_location.pop();
@@ -287,7 +296,7 @@ async fn main() {
                 }
                 "t" => {
                     if let Err(err) = logic_test::test().await {
-                        eprintln!("{err}");
+                        eprintln!("Error: {err}");
                     }
                     wait_for_input();
                     display_menu();

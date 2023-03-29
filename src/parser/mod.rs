@@ -13,17 +13,17 @@ pub struct ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.expected.len() == 0 {
-            write!(f, "unexpected character: {:?}", self.token.lexeme,)
+            write!(f, "unexpected character: {}", self.token.lexeme,)
         } else if self.expected.len() == 1 {
             write!(
                 f,
-                "expected {:?}, found {:?}",
+                "expected {}, found {}",
                 self.expected[0], self.token.kind,
             )
         } else {
             write!(
                 f,
-                "expected one of {:?}, found {:?}",
+                "expected one of {:#?}, found {}",
                 self.expected, self.token.kind,
             )
         }
@@ -88,6 +88,10 @@ fn find_close(tokens: &[Token]) -> Option<usize> {
     }
 
     None
+}
+
+fn is_terminator(token: Option<&Token>) -> Option<bool> {
+    Some(token?.is_terminator())
 }
 
 /// Remove the articles from a vec of tokens, starting at index i and ending at a terminator.
@@ -246,29 +250,43 @@ fn parse_clause(tokens: &[Token]) -> Result<ast::Clause, ParseError> {
 }
 
 /// Checks if a slice of tokens contains a token of type 'kind' before a terminator.
-fn tokens_contain(tokens: &[Token], kind: TokenType) -> bool {
+fn tokens_contain(tokens: &[Token], kind: TokenType) -> Result<bool, ParseError> {
     let mut i = 0;
     while i < tokens.len() {
-        if tokens[i].is_terminator() {
-            return false;
+        match is_terminator(tokens.iter().nth(i)) {
+            Some(result) => {
+                if result {
+                    return Ok(false);
+                }
+            }
+            None => {
+                return Err(ParseError::new(tokens[i - 1].clone(), TokenType::FullStop));
+            }
         }
 
         if tokens[i].kind == kind {
-            return true;
+            return Ok(true);
         }
 
         i += 1
     }
 
-    false
+    Ok(false)
 }
 
 /// Returns a copy of the next terminator along, with its location in 'tokens'.
-fn next_terminator(tokens: &[Token]) -> (&Token, usize) {
+fn next_terminator(tokens: &[Token]) -> Result<(&Token, usize), ParseError> {
     let mut i = 0;
     loop {
-        if tokens[i].is_terminator() {
-            break;
+        match is_terminator(tokens.iter().nth(i)) {
+            Some(result) => {
+                if result {
+                    break;
+                }
+            }
+            None => {
+                return Err(ParseError::new(tokens[i - 1].clone(), TokenType::FullStop));
+            }
         }
         if i < tokens.len() {
             i += 1
@@ -277,7 +295,7 @@ fn next_terminator(tokens: &[Token]) -> (&Token, usize) {
         }
     }
 
-    (&tokens[i], i)
+    Ok((&tokens[i], i))
 }
 
 /// Finds the index of the next occurrence of 'kind' in 'tokens'.
@@ -296,7 +314,7 @@ fn find_next(tokens: &[Token], kind: TokenType) -> usize {
 /// Parses a sequence of tokens into a statement, starting from 'i'.
 /// Returns the created statement along with the index it stopped at.
 fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
-    let (_, stmt_end) = next_terminator(&tokens);
+    let (_, stmt_end) = next_terminator(&tokens)?;
 
     let mut binary = type_between(tokens, TokenType::Prepostion, TokenType::If);
     let (collapsed, articles) = collapse_articles(tokens);
@@ -305,7 +323,7 @@ fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
     let right_index = 4;
     let mut kind = ast::StmtType::Fact;
 
-    let (next_term, _) = next_terminator(&collapsed);
+    let (next_term, _) = next_terminator(&collapsed)?;
     if next_term.kind == TokenType::QuestionMark {
         match collapsed[0].kind {
             TokenType::Verb => {
@@ -350,7 +368,7 @@ fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
     }
 
     // Rule
-    if tokens_contain(&tokens, TokenType::If) {
+    if tokens_contain(&tokens, TokenType::If)? {
         stmt.kind = ast::StmtType::Rule;
         let clause_start = find_next(&tokens, TokenType::If) + 1;
         stmt.condition = Some(parse_clause(&tokens[clause_start..stmt_end])?);
