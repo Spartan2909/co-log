@@ -48,4 +48,7 @@ The other type of statement is rules. A rule is a condition, where the relations
 Example rules would be 'X is a mammal if X is an animal and X is warm-blooded.' or 'X is the brother of Y if X is the sibling of Y and X is male.'
 The right hand side of a rule can contain references to any facts or rules defined in the program.
 Note that variables in rules must be in full caps.
+
+Co-log also has queries. These are questions, and end with a question mark.
+Example queries would be 'Is a hamster a mammal?' or 'Who is the brother of Jack?'.
 ";
