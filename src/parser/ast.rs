@@ -31,7 +31,7 @@ impl Identifier {
     }
 
     pub fn preposition(&self) -> &Option<String> {
-        &self.article
+        &self.preposition
     }
 }
 

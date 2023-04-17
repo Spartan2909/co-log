@@ -12,19 +12,21 @@ pub struct ParseError {
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.expected.len() == 0 {
+        if self.expected.is_empty() {
             write!(f, "unexpected character: {}", self.token.lexeme(),)
         } else if self.expected.len() == 1 {
             write!(
                 f,
                 "expected {}, found {}",
-                self.expected[0], self.token.kind(),
+                self.expected[0],
+                self.token.kind(),
             )
         } else {
             write!(
                 f,
                 "expected one of {:#?}, found {}",
-                self.expected, self.token.kind(),
+                self.expected,
+                self.token.kind(),
             )
         }
     }
@@ -253,7 +255,7 @@ fn parse_clause(tokens: &[Token]) -> Result<ast::Clause, ParseError> {
 fn tokens_contain(tokens: &[Token], kind: TokenType) -> Result<bool, ParseError> {
     let mut i = 0;
     while i < tokens.len() {
-        match is_terminator(tokens.iter().nth(i)) {
+        match is_terminator(tokens.get(i)) {
             Some(result) => {
                 if result {
                     return Ok(false);
@@ -278,7 +280,7 @@ fn tokens_contain(tokens: &[Token], kind: TokenType) -> Result<bool, ParseError>
 fn next_terminator(tokens: &[Token]) -> Result<(&Token, usize), ParseError> {
     let mut i = 0;
     loop {
-        match is_terminator(tokens.iter().nth(i)) {
+        match is_terminator(tokens.get(i)) {
             Some(result) => {
                 if result {
                     break;
@@ -314,7 +316,7 @@ fn find_next(tokens: &[Token], kind: TokenType) -> usize {
 /// Parses a sequence of tokens into a statement, starting from 'i'.
 /// Returns the created statement along with the index it stopped at.
 fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
-    let (_, stmt_end) = next_terminator(&tokens)?;
+    let (_, stmt_end) = next_terminator(tokens)?;
 
     let mut binary = type_between(tokens, TokenType::Prepostion, TokenType::If);
     let (collapsed, articles) = collapse_articles(tokens);
@@ -368,9 +370,9 @@ fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
     }
 
     // Rule
-    if tokens_contain(&tokens, TokenType::If)? {
+    if tokens_contain(tokens, TokenType::If)? {
         stmt.kind = ast::StmtType::Rule;
-        let clause_start = find_next(&tokens, TokenType::If) + 1;
+        let clause_start = find_next(tokens, TokenType::If) + 1;
         stmt.condition = Some(parse_clause(&tokens[clause_start..stmt_end])?);
     }
 
@@ -385,7 +387,7 @@ pub fn parse(tokens: &[Token]) -> Result<Vec<ast::Stmt>, ParseError> {
     while i < tokens.len() {
         use TokenType::*;
         match tokens[i].kind() {
-            EOF => break,
+            Eof => break,
             Article | Literal | Variable | Pronoun | Verb => {
                 let (tree, end) = parse_stmt(&tokens[i..])?;
                 //dbg!(&tree);

@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, hash::Hash};
 
 use super::parser::ParseError;
 
@@ -24,7 +24,7 @@ pub enum TokenType {
     Literal,
     Variable,
 
-    EOF,
+    Eof,
 
     Error,
 }
@@ -45,7 +45,7 @@ impl fmt::Display for TokenType {
             Not => "'not'",
             Literal => "literal",
             Variable => "variable",
-            EOF => "end of file",
+            Eof => "end of file",
             Error => "error",
         };
 
@@ -57,7 +57,7 @@ use TokenType::*;
 
 /// A token of the user's source code.
 /// This represents a single keyword, identifier, or piece of punctuation, or the end of the file.
-#[derive(Debug, Eq, Hash, Clone)]
+#[derive(Debug, Eq, Clone)]
 pub struct Token {
     kind: TokenType,
     lexeme: String,
@@ -77,6 +77,13 @@ impl fmt::Display for Token {
 impl PartialEq for Token {
     fn eq(&self, other: &Self) -> bool {
         self.kind == other.kind && self.lexeme == other.lexeme
+    }
+}
+
+impl Hash for Token {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.kind.hash(state);
+        self.lexeme.hash(state);
     }
 }
 
@@ -161,7 +168,7 @@ pub fn scan(source: &str) -> Result<Vec<Token>, ParseError> {
                 continue;
             }
             c if c.is_alphabetic() => {
-                let lexeme = get_word(&source, i);
+                let lexeme = get_word(source, i);
                 let length = lexeme.len();
                 let kind = match lexeme.to_lowercase().as_str() {
                     "a" | "an" | "the" => Article,
@@ -195,7 +202,7 @@ pub fn scan(source: &str) -> Result<Vec<Token>, ParseError> {
         i += 1;
     }
 
-    tokens.push(Token::new(TokenType::EOF, "", i));
+    tokens.push(Token::new(TokenType::Eof, "", i));
     Ok(tokens)
 }
 

@@ -44,16 +44,10 @@ impl Identifiers {
 
     /// Given a co-log identifier's name, get its Prolog name.
     fn get_from_cl_name(&self, cl_name: &str) -> Option<&Identifier> {
-        for identifier in &self.identifiers {
-            if is_lowercase(&identifier.cl_name[0..1])
-                && identifier.cl_name == cl_name.to_lowercase()
+        self.identifiers.iter().find(|&identifier| {
+            is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name.to_lowercase()
                 || !is_lowercase(&identifier.cl_name[0..1]) && identifier.cl_name == cl_name
-            {
-                return Some(identifier);
-            }
-        }
-
-        None
+        })
     }
 
     /// Adds a new identifier to the array.
@@ -78,7 +72,7 @@ impl Identifiers {
 
         self.identifiers.push(Identifier {
             cl_name,
-            pl_name: pl_name,
+            pl_name,
             article: identifier.article().clone(),
             preposition: identifier.preposition().clone(),
         });
@@ -197,10 +191,10 @@ pub fn transpile(
             ast::StmtType::Query => {
                 let relationship = identifiers.get_or_create(tree.relationship()).to_string();
                 let left = identifiers.get_or_create(tree.left()).to_string();
-                let right = match tree.right() {
-                    Some(iden) => Some(identifiers.get_or_create(iden).to_string()),
-                    None => None,
-                };
+                let right = tree
+                    .right()
+                    .as_ref()
+                    .map(|iden| identifiers.get_or_create(iden));
 
                 queries.push(Query {
                     relationship,
@@ -218,7 +212,8 @@ pub fn transpile(
 
                 if tree.kind() == ast::StmtType::Rule {
                     output += " :- ";
-                    output += &transpile_clause(tree.condition().clone().unwrap(), &mut identifiers);
+                    output +=
+                        &transpile_clause(tree.condition().clone().unwrap(), &mut identifiers);
                 }
 
                 output += ".\n";

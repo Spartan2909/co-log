@@ -1,12 +1,12 @@
 use clap::Parser; // A library to parse command line arguments
 use co_log; // The main functionality
+use ctrlc; // A library to handle ctrl-c signals
 use directories::ProjectDirs; // A library to access data folders on any platform
 use scrawl; // A library to open the user's text editor
 use std::{
     env, fs,
     io::{self, BufRead, Write},
 };
-use ctrlc; // A library to handle ctrl-c signals
 use tokio; // An asynchronous runtime
 
 mod text; // A module containing the large blocks of text used in the UI

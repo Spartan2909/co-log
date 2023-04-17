@@ -48,7 +48,7 @@ fn fact_unary() {
                 start: 21,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 22,
             },
@@ -97,7 +97,7 @@ fn fact_binary() {
                 start: 27,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 28,
             },
@@ -181,7 +181,7 @@ fn rule_unary() {
                 start: 53,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 54,
             },
@@ -285,7 +285,7 @@ fn rule_binary() {
                 start: 60,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 61,
             },
@@ -429,7 +429,7 @@ fn rule_binary_parentheses() {
                 start: 69,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: "".to_string(),
                 start: 70,
             },
@@ -468,7 +468,7 @@ fn rule_binary_negation() {
             Token::new(Not, "not", 80),
             Token::new(Variable, "Y", 84),
             Token::new(FullStop, ".", 85),
-            Token::new(EOF, "", 86),
+            Token::new(Eof, "", 86),
         ]),
     )
 }
@@ -509,7 +509,7 @@ fn query_literal() {
                 start: 21,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 22,
             },
@@ -558,7 +558,7 @@ fn query_literal_literal() {
                 start: 27,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 28,
             },
@@ -587,7 +587,7 @@ fn query_literal_pronoun() {
                 start: 26,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: String::from(""),
                 start: 27,
             },
@@ -607,7 +607,7 @@ fn query_pronoun_literal() {
             Token::new(Prepostion, "of", 19),
             Token::new(Literal, "Jane", 22),
             Token::new(QuestionMark, "?", 26),
-            Token::new(EOF, "", 27),
+            Token::new(Eof, "", 27),
         ]),
     )
 }
@@ -624,7 +624,7 @@ fn query_pronoun_pronoun() {
             Token::new(Prepostion, "of", 18),
             Token::new(Pronoun, "who", 21),
             Token::new(QuestionMark, "?", 24),
-            Token::new(EOF, "", 25),
+            Token::new(Eof, "", 25),
         ]),
     )
 }
@@ -758,7 +758,7 @@ fn program_1() {
             start: 104,
         },
         Token {
-            kind: EOF,
+            kind: Eof,
             lexeme: "".to_string(),
             start: 105,
         },
@@ -971,7 +971,7 @@ fn program_2() {
                 start: 141,
             },
             Token {
-                kind: EOF,
+                kind: Eof,
                 lexeme: "".to_string(),
                 start: 142,
             },
