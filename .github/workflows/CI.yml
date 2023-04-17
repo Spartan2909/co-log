@@ -25,6 +25,9 @@ jobs:
       - name: Set environment variables
         run: export DATABASE_URL=""
         
+      - name: Build CLI
+        run: cargo build --bin "cli"
+        
       - name: Test
         run: cargo swipl test
   
