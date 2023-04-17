@@ -34,23 +34,23 @@ impl TryFrom<String> for Answer {
 
 /// A quiz question.
 #[derive(Debug)]
-struct Question {
-    question: &'static str,
-    answer_a: &'static str,
-    answer_b: &'static str,
-    answer_c: &'static str,
-    answer_d: &'static str,
+struct Question<'a> {
+    question: &'a str,
+    answer_a: &'a str,
+    answer_b: &'a str,
+    answer_c: &'a str,
+    answer_d: &'a str,
     correct_answer: Answer,
 }
 
-impl Question {
+impl<'a> Question<'a> {
     /// Construct a new question from the given parameters.
     const fn new(
-        question: &'static str,
-        a: &'static str,
-        b: &'static str,
-        c: &'static str,
-        d: &'static str,
+        question: &'a str,
+        a: &'a str,
+        b: &'a str,
+        c: &'a str,
+        d: &'a str,
         correct: Answer,
     ) -> Self {
         Self {
@@ -81,7 +81,7 @@ enum Attribute {
 }
 
 /// The questions used in the quiz.
-const QUESTIONS: [Question; 5] = [
+const QUESTIONS: [Question<'static>; 5] = [
     Question::new(
         "What is the predicate in the following statement: 'John is the brother of Jack.'?",
         "John",
@@ -266,20 +266,18 @@ D - {}",
             question.answer_d,
         );
 
-        let answer;
-        loop {
+        let answer = loop {
             print!("> ");
             let _ = io::stdout().flush();
             match Answer::try_from(get_user_input()) {
                 Ok(a) => {
-                    answer = a;
-                    break;
+                    break a;
                 }
                 Err(_) => println!("invalid response"),
             }
 
             println!();
-        }
+        };
 
         if answer == question.correct_answer {
             num_correct = num_correct + 1;
