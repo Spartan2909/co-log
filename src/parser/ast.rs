@@ -69,7 +69,7 @@ pub enum OperatorType {
     Or,
 }
 
-/// A clause in a rule. Note that clauses of the form `'(' clause ')'` has no special representation, as it simply changes the order of the parsing.
+/// A clause in a rule. Note that clauses of the form `'(' clause ')'` have no special representation, as the parentheses simply change the order of the parsing.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Clause {
     /// A clause of the form `article? identifier verb ‘not’? article? literal (preposition article? identifier)?.`
