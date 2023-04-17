@@ -1,12 +1,12 @@
-use clap::Parser;
-use co_log;
-use directories::ProjectDirs;
-use scrawl;
+use clap::Parser; // A library to parse command line arguments
+use co_log; // The main functionality
+use directories::ProjectDirs; // A library to access data folders on any platform
+use scrawl; // A library to open the user's text editor
 use std::{
     env, fs,
     io::{self, BufRead, Write},
 };
-use tokio;
+use tokio; // An asynchronous runtime
 
 mod text;
 use text::*;
@@ -109,6 +109,7 @@ fn get_file_name(file: &fs::DirEntry) -> String {
 
 /// Gets the file that the user wants to select.
 fn get_file() -> Option<String> {
+    // Get the location where the files are stored
     let project_dirs = ProjectDirs::from("com", "Kleb", "co-log").unwrap();
     let mut user_file_folder = project_dirs.data_dir().to_path_buf();
     user_file_folder.push("user_files");
@@ -168,6 +169,7 @@ fn edit_file(file_path: Option<String>) {
         }
     }
 
+    // Open the file in the user's preferred text editor
     scrawl::edit_file(&(file_to_edit)).unwrap();
 
     println!("Would you like to query the file? Y|N");
@@ -207,7 +209,7 @@ fn query_file(file_path: Option<String>) {
 
     fs::write(&tmp_location, pl).unwrap();
 
-    /*
+    /* This code is from my attempt at communicating with Prolog. It is unfinished.
     let context = co_log::start_prolog(tmp_location.to_str().unwrap()).unwrap();
 
     println!("Enter your queries, or enter ':exit' to finish.");
