@@ -28,7 +28,7 @@ jobs:
         run: export DATABASE_URL=""
         
       - name: Build CLI
-        run: cargo build --bin "cli" --features="bin"
+        run: cargo build --bin "cli" --features="bin" --features="no-database"
         
       - name: Test
         run: cargo swipl test

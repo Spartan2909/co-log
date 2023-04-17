@@ -37,6 +37,7 @@ Please enter the name of a file to query:
 
 ";
 
+#[cfg(not(feature = "no-database"))]
 pub const TEST_START_TEXT: &str = "
 Test
 

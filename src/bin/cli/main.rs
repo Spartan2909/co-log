@@ -12,6 +12,7 @@ use tokio; // An asynchronous runtime
 mod text; // A module containing the large blocks of text used in the UI
 use text::*;
 
+#[cfg(not(feature = "no-database"))]
 mod logic_test; // A module containing the logic test
 
 /// The command line arguments.
@@ -304,6 +305,7 @@ async fn main() {
                     query_file(None);
                     display_menu();
                 }
+                #[cfg(not(feature = "no-database"))]
                 "t" => {
                     if let Err(err) = logic_test::test().await {
                         eprintln!("Error: {err}");
