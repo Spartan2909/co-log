@@ -6,12 +6,13 @@ use std::{
     env, fs,
     io::{self, BufRead, Write},
 };
+use ctrlc; // A library to handle ctrl-c signals
 use tokio; // An asynchronous runtime
 
-mod text;
+mod text; // A module containing the large blocks of text used in the UI
 use text::*;
 
-mod logic_test;
+mod logic_test; // A module containing the logic test
 
 /// The command line arguments.
 #[derive(Debug, Parser)]
@@ -20,32 +21,31 @@ struct Args {
     /// The file to query
     file: Option<String>,
 
-    /// Whether to simply transpile then exit.
+    /// Whether to simply transpile then exit
     #[arg(short)]
     dry_run: bool,
 }
 
-/// Get tne user's input.
+/// Get the user's input from the command line.
 fn get_user_input() -> String {
     loop {
         if let Some(line) = io::stdin().lock().lines().nth(0) {
-            break line
+            break line;
         }
-    }.expect("error reading from stdin")
+    }
+    .expect("error reading from stdin")
 }
 
 /// Create a file, reading the file name from the keyboard if it is not given.
 fn create_file(file_name: Option<String>) -> io::Result<()> {
-    let mut chosen_file = "".to_string();
+    let mut chosen_file = String::with_capacity(30);
 
     let project_dirs = ProjectDirs::from("com", "Kleb", "co-log").unwrap();
     let mut user_file_folder = project_dirs.data_dir().to_path_buf();
     user_file_folder.push("user_files");
 
     if !user_file_folder.exists() {
-        println!("doesn't exist");
-        fs::create_dir_all(user_file_folder.clone())?;
-        println!("created");
+        fs::create_dir_all(user_file_folder.clone())?; // Ensure that the folder for the user's files exists
     }
 
     match file_name {
@@ -59,6 +59,8 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
             while !valid {
                 print!("{CREATE_FILE_TEXT}");
 
+                print!("> ");
+                let _ = io::stdout().flush();
                 chosen_file = get_user_input();
 
                 if user_files.any(|f| {
@@ -83,6 +85,8 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
 
     fs::File::create(user_file_folder.clone())?;
 
+    print!("> ");
+    let _ = io::stdout().flush();
     println!("Would you like to edit this file? Y|N");
 
     match get_user_input().to_lowercase().as_str() {
@@ -94,35 +98,30 @@ fn create_file(file_name: Option<String>) -> io::Result<()> {
 }
 
 /// Gets the name of a given file, not including the file extension.
-fn get_file_name(file: &fs::DirEntry) -> String {
-    let file_name = file
-        .path()
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
+fn get_file_name(file: &fs::DirEntry) -> Option<String> {
+    let file_name = file.path().file_name()?.to_str().unwrap().to_string();
     let dot = file_name.chars().position(|c| c == '.').unwrap();
 
-    file_name[..dot].to_string()
+    Some(file_name[..dot].to_string())
 }
 
 /// Gets the file that the user wants to select.
-fn get_file() -> Option<String> {
+fn get_file(prompt: &str) -> Option<String> {
     // Get the location where the files are stored
     let project_dirs = ProjectDirs::from("com", "Kleb", "co-log").unwrap();
     let mut user_file_folder = project_dirs.data_dir().to_path_buf();
     user_file_folder.push("user_files");
 
-    print!("{EDIT_FILE_TEXT}");
+    print!("{prompt}");
 
     let files = fs::read_dir(co_log::remove_path_prefix(
         user_file_folder.to_str().unwrap(),
     ))
     .unwrap();
 
+    // Display the user's files
     for user_file in files {
-        println!("- {}", get_file_name(&user_file.unwrap()));
+        println!("- {}", get_file_name(&user_file.unwrap()).unwrap());
     }
 
     println!("");
@@ -139,12 +138,18 @@ fn get_file() -> Option<String> {
         f.unwrap().path().file_name().unwrap().to_str() == Some(&(user_file.clone() + ".cl"))
     }) {
         println!("File not found. Would you like to create this file? Y|N");
+        print!("> ");
+        let _ = io::stdout().flush();
         match get_user_input().to_lowercase().as_str() {
             "y" => {
                 create_file(Some(user_file.clone())).unwrap();
                 return None;
             }
-            _ => user_file = get_user_input(),
+            _ => {
+                print!("> ");
+                let _ = io::stdout().flush();
+                user_file = get_user_input();
+            }
         }
     }
 
@@ -155,23 +160,20 @@ fn get_file() -> Option<String> {
 
 /// Opens a file in the user's preferred text editor, reading the file name from the keyboard if it is not given.
 fn edit_file(file_path: Option<String>) {
-    let file_to_edit;
-
-    match file_path {
-        None => {
-            file_to_edit = match get_file() {
-                Some(file) => file,
-                None => return,
-            }
-        }
-        Some(filename) => {
-            file_to_edit = filename;
-        }
-    }
+    // Get the file name if it doesn't exist
+    let file_to_edit = match file_path {
+        None => match get_file(EDIT_FILE_TEXT) {
+            Some(file) => file,
+            None => return,
+        },
+        Some(filename) => filename,
+    };
 
     // Open the file in the user's preferred text editor
     scrawl::edit_file(&(file_to_edit)).unwrap();
 
+    print!("> ");
+    let _ = io::stdout().flush();
     println!("Would you like to query the file? Y|N");
     match get_user_input().to_lowercase().as_str() {
         "y" => {
@@ -185,7 +187,7 @@ fn edit_file(file_path: Option<String>) {
 /// Queries the selected file, reading the file name from the keyboard if it is not given.
 fn query_file(file_path: Option<String>) {
     let file_to_query = match file_path {
-        None => match get_file() {
+        None => match get_file(QUERY_FILE_TEXT) {
             Some(file) => file,
             None => return,
         },
@@ -194,6 +196,7 @@ fn query_file(file_path: Option<String>) {
 
     let colog = fs::read_to_string(file_to_query).unwrap();
 
+    // Transpile the Co-log to Prolog, exiting if there is an error
     let (pl, identifiers) = match co_log::transpile(colog, None) {
         Ok((pl, _, identifiers)) => (pl, identifiers),
         Err(err) => {
@@ -203,10 +206,12 @@ fn query_file(file_path: Option<String>) {
         }
     };
 
+    // Get the temp file location
     let mut tmp_location = env::current_exe().expect("failed to get location of executable");
     tmp_location.pop();
     tmp_location.push("temp.pl");
 
+    // Save the Prolog to a file
     fs::write(&tmp_location, pl).unwrap();
 
     /* This code is from my attempt at communicating with Prolog. It is unfinished.
@@ -238,6 +243,7 @@ fn query_file(file_path: Option<String>) {
         tmp_location.display(),
     );
 
+    // Display the table of Co-log and Prolog names
     println!("{:<15} | {:<15}", "Co-log name", "Prolog name");
     println!("{}", "_".repeat(16) + "|" + &"_".repeat(16));
     for identifier in identifiers.identifiers() {
@@ -266,6 +272,8 @@ fn wait_for_input() {
 
 #[tokio::main]
 async fn main() {
+    ctrlc::set_handler(|| std::process::exit(0)).expect("Error setting ctrl-c handler");
+
     let args = Args::parse();
 
     if let Some(file) = args.file {

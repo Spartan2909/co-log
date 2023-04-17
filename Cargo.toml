@@ -14,9 +14,10 @@ sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "sqlite", "mac
 tokio = { version = "1", features = ["full"], optional = true }
 chrono = { version = "0.4", optional = true }
 dotenvy = { version = "0.15", optional = true }
+ctrlc = { version = "3.2", optional = true }
 
 [features]
-bin = ["dep:directories", "dep:scrawl", "dep:clap", "dep:sqlx", "dep:tokio", "dep:chrono", "dep:dotenvy"]
+bin = ["dep:directories", "dep:scrawl", "dep:clap", "dep:sqlx", "dep:tokio", "dep:chrono", "dep:dotenvy", "dep:ctrlc"]
 
 [[bin]]
 name = "cli"

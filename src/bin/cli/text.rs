@@ -30,6 +30,13 @@ Please enter the name of a file to edit:
 
 ";
 
+pub const QUERY_FILE_TEXT: &str = "
+File Query
+
+Please enter the name of a file to query:
+
+";
+
 pub const TEST_START_TEXT: &str = "
 Test
 

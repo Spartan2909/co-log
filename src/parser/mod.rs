@@ -34,7 +34,7 @@ impl ParseError {
     fn new(token: Token, expected: TokenType) -> Self {
         Self {
             token,
-            expected: Vec::from([expected]),
+            expected: vec![expected],
         }
     }
 }
@@ -94,7 +94,7 @@ fn is_terminator(token: Option<&Token>) -> Option<bool> {
     Some(token?.is_terminator())
 }
 
-/// Remove the articles from a vec of tokens, starting at index i and ending at a terminator.
+/// Remove the articles from a series of tokens, starting at index i and ending at a terminator.
 /// Returns a copy of the tokens with the articles stripped out, and a vec of articles, with positions 0, 1, and 2 referring to the left identifier, the relationship, and the right identifier respectively.
 fn collapse_articles(tokens: &[Token]) -> (Vec<Token>, Vec<Option<Token>>) {
     let mut result = Vec::new();
@@ -127,7 +127,7 @@ fn collapse_articles(tokens: &[Token]) -> (Vec<Token>, Vec<Option<Token>>) {
     (result, articles)
 }
 
-/// Check if a token of type 'kind' exists between indexes start and end in tokens, returning false if a token of type 'stop_at' is found.
+/// Check if a token of type 'kind' exists in tokens, returning false if a token of type 'stop_at' is found.
 fn type_between(tokens: &[Token], kind: TokenType, stop_at: TokenType) -> bool {
     let mut i = 0;
 
@@ -240,12 +240,12 @@ fn parse_clause(tokens: &[Token]) -> Result<ast::Clause, ParseError> {
 
     Err(ParseError {
         token: collapsed[0].clone(),
-        expected: Vec::from([
+        expected: vec![
             TokenType::LeftParen,
             TokenType::Article,
             TokenType::Literal,
             TokenType::Variable,
-        ]),
+        ],
     })
 }
 
@@ -379,7 +379,7 @@ fn parse_stmt(tokens: &[Token]) -> Result<(ast::Stmt, usize), ParseError> {
 
 /// Parses a sequence of tokens into an abstract syntax tree.
 pub fn parse(tokens: &[Token]) -> Result<Vec<ast::Stmt>, ParseError> {
-    let mut trees: Vec<ast::Stmt> = Vec::new();
+    let mut trees = Vec::new();
 
     let mut i = 0;
     while i < tokens.len() {

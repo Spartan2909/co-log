@@ -242,6 +242,7 @@ fn format_time(seconds: f64) -> String {
     }
 }
 
+/// The logic test.
 pub async fn test() -> Result<(), sqlx::Error> {
     print!("{}", text::TEST_START_TEXT);
 
