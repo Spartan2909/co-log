@@ -1,7 +1,7 @@
 use crate::scanner::{Token, TokenType};
 
 /// The type of term that an identifier represents.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IdenType {
     Literal,
     Variable,
@@ -11,10 +11,28 @@ pub enum IdenType {
 /// A literal, variable, or pronoun.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Identifier {
-    pub(crate) kind: IdenType,
-    pub(crate) lexeme: String,
-    pub(crate) article: Option<String>,
-    pub(crate) preposition: Option<String>,
+    pub(super) kind: IdenType,
+    pub(super) lexeme: String,
+    pub(super) article: Option<String>,
+    pub(super) preposition: Option<String>,
+}
+
+impl Identifier {
+    pub fn kind(&self) -> IdenType {
+        self.kind
+    }
+
+    pub fn lexeme(&self) -> &str {
+        &self.lexeme
+    }
+
+    pub fn article(&self) -> &Option<String> {
+        &self.article
+    }
+
+    pub fn preposition(&self) -> &Option<String> {
+        &self.article
+    }
 }
 
 impl TryFrom<&Token> for Identifier {
@@ -22,11 +40,11 @@ impl TryFrom<&Token> for Identifier {
 
     /// Convert a Token to an Identifier, and return a ParseError if the conversion fails.
     fn try_from(value: &Token) -> Result<Self, super::ParseError> {
-        let kind = if value.kind == TokenType::Literal {
+        let kind = if value.kind() == TokenType::Literal {
             IdenType::Literal
-        } else if value.kind == TokenType::Variable {
+        } else if value.kind() == TokenType::Variable {
             IdenType::Variable
-        } else if value.kind == TokenType::Pronoun {
+        } else if value.kind() == TokenType::Pronoun {
             IdenType::Pronoun
         } else {
             return Err(super::ParseError {
@@ -36,7 +54,7 @@ impl TryFrom<&Token> for Identifier {
         };
 
         return Ok(Identifier {
-            lexeme: value.lexeme.clone(),
+            lexeme: value.lexeme().to_string(),
             article: None,
             preposition: None,
             kind,
@@ -45,14 +63,14 @@ impl TryFrom<&Token> for Identifier {
 }
 
 /// The function of an operator.
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum OperatorType {
     And,
     Or,
 }
 
 /// A clause in a rule. Note that clauses of the form `'(' clause ')'` has no special representation, as it simply changes the order of the parsing.
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Clause {
     /// A clause of the form `article? identifier verb ‘not’? article? literal (preposition article? identifier)?.`
     Simple {
@@ -71,7 +89,7 @@ pub enum Clause {
 }
 
 /// The type of a statement.
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum StmtType {
     Fact,
     Rule,
@@ -81,9 +99,31 @@ pub enum StmtType {
 /// A statement, terminated with a full stop or a question mark.
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Stmt {
-    pub(crate) kind: StmtType,
-    pub(crate) left: Identifier,
-    pub(crate) relationship: Identifier,
-    pub(crate) right: Option<Identifier>,
-    pub(crate) condition: Option<Clause>,
+    pub(super) kind: StmtType,
+    pub(super) left: Identifier,
+    pub(super) relationship: Identifier,
+    pub(super) right: Option<Identifier>,
+    pub(super) condition: Option<Clause>,
+}
+
+impl Stmt {
+    pub fn kind(&self) -> StmtType {
+        self.kind
+    }
+
+    pub fn left(&self) -> &Identifier {
+        &self.left
+    }
+
+    pub fn relationship(&self) -> &Identifier {
+        &self.relationship
+    }
+
+    pub fn right(&self) -> &Option<Identifier> {
+        &self.right
+    }
+
+    pub fn condition(&self) -> &Option<Clause> {
+        &self.condition
+    }
 }

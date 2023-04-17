@@ -58,20 +58,20 @@ impl Identifiers {
 
     /// Adds a new identifier to the array.
     /// Returns the name used to refer to the identifier in Prolog.
-    fn add(&mut self, identifier: ast::Identifier) -> &str {
-        let (pl_name, cl_name) = match identifier.kind {
+    fn add(&mut self, identifier: &ast::Identifier) -> &str {
+        let (pl_name, cl_name) = match identifier.kind() {
             IdenType::Variable | IdenType::Pronoun => {
                 self.highest_variable += 1;
                 (
                     "V".to_string() + &(self.highest_variable).to_string(),
-                    identifier.lexeme,
+                    identifier.lexeme().to_string(),
                 )
             }
             IdenType::Literal => {
                 self.highest_literal += 1;
                 (
                     "l".to_string() + &(self.highest_literal).to_string(),
-                    identifier.lexeme.to_lowercase(),
+                    identifier.lexeme().to_lowercase(),
                 )
             }
         };
@@ -79,18 +79,18 @@ impl Identifiers {
         self.identifiers.push(Identifier {
             cl_name,
             pl_name: pl_name,
-            article: identifier.article,
-            preposition: identifier.preposition,
+            article: identifier.article().clone(),
+            preposition: identifier.preposition().clone(),
         });
 
         &self.identifiers.last().unwrap().pl_name
     }
 
     /// Gets the Prolog name of an identifier, creating it if it doesn't exist.
-    fn get_or_create(&mut self, identifier: ast::Identifier) -> String {
-        if identifier.kind == ast::IdenType::Pronoun {
+    fn get_or_create(&mut self, identifier: &ast::Identifier) -> String {
+        if identifier.kind() == ast::IdenType::Pronoun {
             self.add(identifier).to_string()
-        } else if let Some(identifier) = self.get_from_cl_name(&identifier.lexeme) {
+        } else if let Some(identifier) = self.get_from_cl_name(identifier.lexeme()) {
             identifier.pl_name.clone()
         } else {
             self.add(identifier).to_string()
@@ -166,10 +166,10 @@ fn transpile_clause(clause: ast::Clause, identifiers: &mut Identifiers) -> Strin
                 output += r"\+"
             }
 
-            output += &format!("{}(", identifiers.get_or_create(relationship));
-            output += &identifiers.get_or_create(left);
+            output += &format!("{}(", identifiers.get_or_create(&relationship));
+            output += &identifiers.get_or_create(&left);
             if let Some(right) = right {
-                output += &format!(", {}", identifiers.get_or_create(right))
+                output += &format!(", {}", identifiers.get_or_create(&right))
             }
             output += ")";
 
@@ -193,11 +193,11 @@ pub fn transpile(
     let mut queries = Vec::new();
 
     for tree in trees {
-        match tree.kind {
+        match tree.kind() {
             ast::StmtType::Query => {
-                let relationship = identifiers.get_or_create(tree.relationship).to_string();
-                let left = identifiers.get_or_create(tree.left).to_string();
-                let right = match tree.right {
+                let relationship = identifiers.get_or_create(tree.relationship()).to_string();
+                let left = identifiers.get_or_create(tree.left()).to_string();
+                let right = match tree.right() {
                     Some(iden) => Some(identifiers.get_or_create(iden).to_string()),
                     None => None,
                 };
@@ -209,16 +209,16 @@ pub fn transpile(
                 })
             }
             _ => {
-                output += &format!("{}(", identifiers.get_or_create(tree.relationship));
-                output += &identifiers.get_or_create(tree.left);
-                if let Some(right) = tree.right {
+                output += &format!("{}(", identifiers.get_or_create(tree.relationship()));
+                output += &identifiers.get_or_create(tree.left());
+                if let Some(right) = tree.right() {
                     output += &format!(", {}", identifiers.get_or_create(right))
                 }
                 output += ")";
 
-                if tree.kind == ast::StmtType::Rule {
+                if tree.kind() == ast::StmtType::Rule {
                     output += " :- ";
-                    output += &transpile_clause(tree.condition.unwrap(), &mut identifiers);
+                    output += &transpile_clause(tree.condition().clone().unwrap(), &mut identifiers);
                 }
 
                 output += ".\n";

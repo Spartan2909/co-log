@@ -59,9 +59,9 @@ use TokenType::*;
 /// This represents a single keyword, identifier, or piece of punctuation, or the end of the file.
 #[derive(Debug, Eq, Hash, Clone)]
 pub struct Token {
-    pub(crate) kind: TokenType,
-    pub(crate) lexeme: String,
-    pub(crate) start: usize,
+    kind: TokenType,
+    lexeme: String,
+    start: usize,
 }
 
 impl fmt::Display for Token {
@@ -98,6 +98,18 @@ impl Token {
     /// Determines whether the token is a user-defined identifier.
     pub fn is_identifier(&self) -> bool {
         [Literal, Variable].contains(&self.kind)
+    }
+
+    pub fn kind(&self) -> TokenType {
+        self.kind
+    }
+
+    pub fn lexeme(&self) -> &str {
+        &self.lexeme
+    }
+
+    pub fn start(&self) -> usize {
+        self.start
     }
 }
 
